@@ -5,7 +5,7 @@ CREATE TABLE `User` (
     `updatedAt` DATETIME(3) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
-    `refreshToken` VARCHAR(191) NOT NULL,
+    `refreshToken` TEXT NOT NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
     PRIMARY KEY (`id`)
