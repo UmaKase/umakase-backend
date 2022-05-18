@@ -2,7 +2,14 @@ import express from "express";
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
 import { dbclient } from "../server";
-import { BSalt } from "../config/config";
+import {
+  accessTokenSecret,
+  accessToken_Exp,
+  BSalt,
+  refreshTokenSecret,
+  refreshToken_Exp,
+} from "../config/config";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -11,6 +18,7 @@ router.get("/", (_, res) => {
   res.json({ ok: "ok" });
 });
 
+// SECTION Register
 router.post(
   "/register",
   // Input validation
@@ -87,5 +95,71 @@ router.post(
     });
   }
 );
+// !SECTION
+
+// SECTION Login Route
+router.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  //ANCHOR Check If Email Existed
+  const user = await dbclient.user.findFirst({
+    where: {
+      profile: { username },
+    },
+    include: {
+      profile: true,
+    },
+  });
+
+  if (!user) {
+    return res.json({
+      ok: false,
+      error: {
+        message: "User not found!",
+      },
+    });
+  }
+
+  // ANCHOR 2 filter : Password validation
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Username or password not correct" });
+  }
+  //ANCHOR Success sending JWT
+  const accessToken = jwt.sign({ id: user.profile?.id }, accessTokenSecret!, {
+    expiresIn: accessToken_Exp,
+  });
+  const refreshToken = jwt.sign({ id: user.profile?.id }, refreshTokenSecret!, {
+    expiresIn: refreshToken_Exp,
+  });
+  let newRefreshToken: string[];
+  //process refreshToken saving
+  if (!user.refreshToken) {
+    newRefreshToken = [refreshToken];
+  } else {
+    newRefreshToken = JSON.parse(user.refreshToken);
+    newRefreshToken.push(refreshToken);
+  }
+
+  await dbclient.user.update({
+    where: {
+      email: user.email,
+    },
+    data: {
+      refreshToken: JSON.stringify(newRefreshToken),
+    },
+    include: {
+      profile: true,
+    },
+  });
+  return res.status(200).json({
+    success: true,
+    message: "Valid email & password.",
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+  });
+});
+// !SECTION
 
 export { router as authRouter };
