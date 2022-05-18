@@ -11,9 +11,20 @@ const PORT = process.env.PORT || 5000;
 
 async function main() {
   const app = express();
-  app.use(cors());
-  app.use("/ap1/v1/auth", authRouter);
-  app.use("/ap1/v1/user", userRouter);
+  app.use(express.json());
+  app.use(
+    cors({
+      origin: ["https://hoppscotch.io"],
+    })
+  );
+  app.use("/api/v1/auth", authRouter);
+  app.use("/api/v1/user", userRouter);
+
+  app.get("/", (__, rs) => {
+    rs.json({
+      ok: "kkkk",
+    });
+  });
 
   app.listen(PORT, () => {
     console.log("running on port ", PORT);
