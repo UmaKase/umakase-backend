@@ -5,3 +5,4 @@ export const accessTokenSecret =
   process.env.ACCESS_TOKEN_SECRET || "some super secret";
 export const refreshTokenSecret =
   process.env.REFRESH_TOKEN_SECRET || "some other super  secret";
+export const BSalt = 10;
