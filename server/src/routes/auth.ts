@@ -319,10 +319,6 @@ router.post("/token/logout", async (req, res) => {
       },
     });
   }
-  // const userProfile = await profileRepo.findOne({
-  //   where: { id: refreshTokenPayloads.id },
-  //   relations: ["user"],
-  // });
   const user = await dbclient.user.findFirst({
     where: {
       profile: {
