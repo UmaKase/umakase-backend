@@ -1,11 +1,11 @@
 // This is a normal typescript file || NOT A MODULE
 
 interface AccessToken {
-  id: number;
+  id: string;
 }
 
 interface RefreshToken {
-  id: number;
+  id: string;
   iat: number;
   exp: number;
 }
