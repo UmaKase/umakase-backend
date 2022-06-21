@@ -4,7 +4,6 @@ import { LogBox } from "react-native";
 //intialize the font loading process
 //import useFonts hook & AppLoading
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
 // import Roboto
 import {
   Roboto_400Regular as Roboto_Regular,
@@ -32,7 +31,7 @@ export default function App() {
   });
   if (!fontsLoaded) {
     console.log("App loading");
-    return <AppLoading />;
+    return null;
   }
   LogBox.ignoreLogs(["Remote debugger"]);
   return <RootRouter />;
