@@ -348,7 +348,7 @@ router.post("/token/logout", async (req, res) => {
       id: user.id,
     },
     data: {
-      refreshToken: refreshToken,
+      refreshToken: JSON.stringify(refreshTokenList),
     },
   });
   return res
