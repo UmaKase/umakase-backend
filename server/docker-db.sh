@@ -32,7 +32,7 @@ if [ "$(docker inspect -f {{.State.Running}} project_m_db)" = "true" ]
 then
 		echo "${GREEN}project_m_db is running..."
 		echo "Copy the following to your .env file:"
-		echo "DATABASE_URL=\"mysql://anji:123456@localhost:3309/test_db\"" 
+		echo "DATABASE_URL=\"mysql://anji:123456@localhost:3309/test_db\"${NC}" 
 		echo "Pushing DB Schema to DB..."
 		npx prisma db push
 else

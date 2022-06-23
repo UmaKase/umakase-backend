@@ -35,7 +35,7 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
 // @Body: {string}name, {string[]}roomieNames - username[], {string[]}foodIds.
 router.post("/new", tokenVerify, async (req, res) => {
   const name: string = req.body.name;
-  const roomieNames: string[] = req.body.roomie;
+  const roomieNames: string[] = req.body.roomie; // NOTE **INCLUDED** user username. Can be one use only room
   const foodIds: string[] = req.body.foodIds;
 
   const creator = await dbclient.profile.findFirst({
@@ -54,17 +54,17 @@ router.post("/new", tokenVerify, async (req, res) => {
     });
   }
 
-  // if (creator.) {
-  //   // Check if User is Premium user?
-  //   // -------------------
-  //   // Normal user can only able to create one room
-  //   return res.json({
-  //     ok: false,
-  //     error: {
-  //       message: "You can only create one room",
-  //     },
-  //   });
-  // }
+  if (creator.createdRoom.length > 2) {
+    // Check if User is Premium user?
+    // -------------------
+    // Normal user can only able to create two room
+    return res.json({
+      ok: false,
+      error: {
+        message: "You can only create one room",
+      },
+    });
+  }
 
   const newRoom = await dbclient.room.create({
     data: {
