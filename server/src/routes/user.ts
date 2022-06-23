@@ -11,9 +11,6 @@ router.get("/profile", tokenVerify, async (req, res) => {
         id,
       },
     },
-    // include: {
-    // 	profile: true
-    // },
     select: {
       createdAt: true,
       email: true,
