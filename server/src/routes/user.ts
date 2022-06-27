@@ -11,9 +11,6 @@ router.get("/profile", tokenVerify, async (req, res) => {
         id,
       },
     },
-    // include: {
-    // 	profile: true
-    // },
     select: {
       createdAt: true,
       email: true,
@@ -36,6 +33,54 @@ router.get("/profile", tokenVerify, async (req, res) => {
       },
     });
   }
+});
+
+router.get("/search", tokenVerify, async (req, res) => {
+  const query = <string>req.query.query;
+  const profiles = await dbclient.profile.findMany({
+    where: {
+      OR: [
+        {
+          firstname: {
+            contains: query,
+          },
+        },
+        {
+          lastname: {
+            contains: query,
+          },
+        },
+        {
+          username: {
+            contains: query,
+          },
+        },
+        {
+          user: {
+            email: {
+              contains: query,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  if (!profiles) {
+    return res.json({
+      ok: false,
+      error: {
+        message: "User not found",
+      },
+    });
+  }
+
+  return res.json({
+    ok: true,
+    data: {
+      profiles,
+    },
+  });
 });
 
 export { router as userRouter };
