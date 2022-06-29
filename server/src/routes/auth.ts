@@ -11,6 +11,7 @@ import {
 } from "../config/config";
 import jwt from "jsonwebtoken";
 import { jwtDecode, jwtVerify } from "../utils/jwtController";
+import { ResponseObject } from "../utils/ResponseController";
 
 const router = express.Router();
 
@@ -45,7 +46,10 @@ router.post(
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+      // return res.status(400).json({ success: false, errors: errors.array() });
+      return new ResponseObject(res, false, 400, "Input validation error", {
+        error: errors.array(),
+      }).send();
     }
 
     // ANCHOR Check If Email or Username Existed
@@ -351,9 +355,7 @@ router.post("/token/logout", async (req, res) => {
       refreshToken: JSON.stringify(refreshTokenList),
     },
   });
-  return res
-    .status(200)
-    .json({ success: true, message: "Refresh token removed." });
+  return new ResponseObject(res, true, 200, "Refresh token removed.").send();
 });
 // !SECTION
 

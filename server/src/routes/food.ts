@@ -1,15 +1,22 @@
+import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { dbclient } from "../server";
 const router = express.Router();
 
 interface query {
   [x: string]: string;
 }
 
-router.get("/", async (req, res) => {
+const prisma = new PrismaClient();
+
+/*
+  Get Foods From *Big Database* With Name or Tags Name ( in Query)
+  Query: name
+  Query: tagName
+*/
+router.get("/db", async (req, res) => {
   const { name, tagName }: query = req.body.query;
 
-  const foods = await dbclient.food.findMany({
+  const foods = await prisma.food.findMany({
     where: {
       OR: [
         {
