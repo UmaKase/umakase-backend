@@ -29,17 +29,7 @@ router.post(
     .isLength({ min: 5, max: undefined })
     .withMessage("Username must be at least 5 characters long"),
   body("password").isLength({ min: 8 }).isStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-    minSymbols: 1,
-    pointsPerUnique: 1,
-    pointsPerRepeat: 0.5,
-    pointsForContainingLower: 10,
-    pointsForContainingUpper: 10,
-    pointsForContainingNumber: 10,
-    pointsForContainingSymbol: 10,
+    minLength: 5,
   }),
   async (req, res) => {
     const { email, username, password, firstname, lastname } = req.body;

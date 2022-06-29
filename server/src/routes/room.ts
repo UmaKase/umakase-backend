@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "../middleware/token";
 
@@ -41,7 +41,11 @@ router.post("/new", tokenVerify, async (req, res) => {
   const roomieNames: string[] = req.body.roomie; // NOTE **INCLUDED** user username. Can be one use only room
   const foodIds: string[] = req.body.foodIds;
 
-  const creator = await prisma.profile.findFirst({
+  const creator:
+    | (Profile & {
+        createdRoom: Room[];
+      })
+    | null = await prisma.profile.findFirst({
     where: { id: req.profile.id },
     include: {
       createdRoom: true,
