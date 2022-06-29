@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import express, { Response } from "express";
+import express from "express";
 import { tokenVerify } from "../middleware/token";
 import { ResponseObject } from "../utils/ResponseController";
 const router = express.Router();

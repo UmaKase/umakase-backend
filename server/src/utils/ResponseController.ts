@@ -1,17 +1,17 @@
 import { Response } from "express";
 
 export class ResponseObject {
-  res: Response;
-  HTTPStatus: number;
-  messageOrError: string;
-  data: any;
-  status: boolean;
+  private res: Response;
+  private HTTPStatus: number;
+  private messageOrError: string;
+  private data: any;
+  private status: boolean;
   constructor(
     res: Response,
     status: boolean,
     HTTPStatus: number | undefined,
     messageOrError: string,
-    data: any
+    data?: any
   ) {
     this.res = res;
     this.status = status;
