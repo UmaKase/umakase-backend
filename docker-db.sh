@@ -5,6 +5,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+container_name=project_m_db
 
 if ! command -v docker &> /dev/null
 then
@@ -32,7 +33,7 @@ if [ ! "$(docker ps -q -f name=project_m_db)" ]; then
 fi
 
 # Check if container is up and running
-if [ "$(docker inspect -f {{.State.Running}} project_m_db)" = "true" ]
+if [ "$( docker container inspect -f '{{.State.Status}}' $container_name )" == "running" ]; 
 then
 		echo -e "${GREEN}project_m_db is running..."
 		echo -e "Copy the following to your .env file:"
