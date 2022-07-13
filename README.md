@@ -14,3 +14,8 @@
 
 - run `npm run build` or `yarn build` to build javascript files.
 - run `npm run start` or `yarn start` to start server.
+
+### 3. Seed The Database
+
+- run `yarn seed`
+- *note you must have your files compiled through `yarn build` or `yarn watch` first*
