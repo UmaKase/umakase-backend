@@ -6,7 +6,8 @@
     "watch": "tsc --watch",
     "dev": "nodemon ./dist/server.js",
     "build": "tsc",
-    "start": "node ./dist/server.js"
+    "start": "node ./dist/server.js",
+    "seed": "node ./dist/database/seed.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

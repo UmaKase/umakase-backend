@@ -2,10 +2,6 @@ import { PrismaClient } from "@prisma/client";
 import express from "express";
 const router = express.Router();
 
-interface query {
-  [x: string]: string;
-}
-
 const prisma = new PrismaClient();
 
 /*
@@ -14,24 +10,24 @@ const prisma = new PrismaClient();
   Query: tagName
 */
 router.get("/db", async (req, res) => {
-  const { name, tagName }: query = req.body.query;
+  const { name, tagName } = req.query;
 
   const foods = await prisma.food.findMany({
     where: {
       OR: [
         {
           name: {
-            contains: name,
+            contains: name as string,
           },
         },
         {
-          altName: { contains: name },
+          altName: { contains: name as string },
         },
         {
           tags: {
             some: {
               tag: {
-                name: { contains: tagName },
+                name: { contains: tagName as string },
               },
             },
           },

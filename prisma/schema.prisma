@@ -59,8 +59,8 @@ model TagsOnFoods {
   food   Food   @relation(fields: [foodId], references: [id])
   tag    Tag    @relation(fields: [tagId], references: [id])
 
+  // @@index([foodId], map: "TagsOnFoods_foodId_fkey")
   @@id([tagId, foodId])
-  @@index([foodId], map: "TagsOnFoods_foodId_fkey")
 }
 
 // !SECTION
