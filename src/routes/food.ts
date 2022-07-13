@@ -11,29 +11,26 @@ const prisma = new PrismaClient();
 */
 router.get("/db", async (req, res) => {
   const { name, tagName } = req.query;
-
-  const foods = await prisma.food.findMany({
-    where: {
-      OR: [
-        {
-          name: {
-            contains: name as string,
-          },
+  console.log({ name, tagName });
+  const whereClause = name
+    ? {
+        name: {
+          contains: name as string,
         },
-        {
-          altName: { contains: name as string },
-        },
-        {
-          tags: {
-            some: {
-              tag: {
-                name: { contains: tagName as string },
-              },
+      }
+    : tagName
+    ? {
+        tags: {
+          some: {
+            tag: {
+              name: { contains: tagName as string },
             },
           },
         },
-      ],
-    },
+      }
+    : {};
+  const foods = await prisma.food.findMany({
+    where: whereClause,
   });
 
   return res.json({
