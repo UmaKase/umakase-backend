@@ -8,7 +8,12 @@ export interface Food {
   altName: string;
   country: string;
   img: null;
-  tags: Tag[];
+  tags: TagOnFood[];
+}
+
+interface TagOnFood {
+  tagId: string;
+  foodId: string;
 }
 
 export interface Tag {
@@ -53,7 +58,16 @@ fs.readFile(
   }
 );
 
-const addTagsToDB = async (tags: Tag[]) => {
+const addDataToDB = async () => {
+  // Clear Tables
+  const tagDeleted = await prisma.tag.deleteMany();
+  const foodDeleted = await prisma.food.deleteMany();
+
+  console.log({
+    tag: tagDeleted.count,
+    food: foodDeleted.count,
+  });
+
   const created = await prisma.tag.createMany({
     data: tags.map((tag) => {
       return {
@@ -63,4 +77,41 @@ const addTagsToDB = async (tags: Tag[]) => {
     }),
   });
   console.log(`Created: ${created.count} tags`);
+  await addFoodsToDB(foods);
+  console.log("END");
 };
+
+const addFoodsToDB = async (foods: Food[]) => {
+  let bool = false;
+  await Promise.all(
+    foods.map((food) => {
+      const foodOnTags = food.tags.map((tag) => ({
+        tag: {
+          connect: {
+            id: tag.tagId,
+          },
+        },
+      }));
+      if (!bool) {
+        bool = !bool;
+        console.log(foodOnTags);
+      }
+      return prisma.food.create({
+        data: {
+          id: food.id,
+          altName: food.altName,
+          name: food.name,
+          country: food.country,
+          img: food.img,
+          tags: {
+            create: foodOnTags,
+          },
+        },
+      });
+    })
+  ).then(() => {
+    console.log("added foods");
+  });
+};
+
+addDataToDB();
