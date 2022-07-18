@@ -1,14 +1,20 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+
+// Middware
 import cors from "cors";
+import { routeLogger } from "./middleware/routeLogger";
 
-export const dbclient = new PrismaClient();
-
+// Routes
 import { authRouter } from "./routes/auth";
 import { userRouter } from "./routes/user";
 import { foodRouter } from "./routes/food";
 import { tagRouter } from "./routes/tag";
-import { routeLogger } from "./middleware/routeLogger";
+import { imagesRouter } from "./routes/images";
+import { Log } from "./utils/Log";
+
+export const logg = new Log(process.env.LOG_PATH);
+export const dbclient = new PrismaClient();
 
 const PORT = process.env.PORT || 5000;
 
@@ -26,6 +32,7 @@ async function main() {
   app.use("/api/v1/user", userRouter);
   app.use("/api/v1/food", foodRouter);
   app.use("/api/v1/tag", tagRouter);
+  app.use("/api/v1/img", imagesRouter);
 
   app.get("/", (__, rs) => {
     rs.json({
