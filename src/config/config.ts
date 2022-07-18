@@ -1,4 +1,5 @@
 require("dotenv").config();
+export const DEFAULT_LOG_PATH = "/storage/logs";
 export const accessToken_Exp = "1d";
 export const refreshToken_Exp = "30d";
 export const accessTokenSecret =

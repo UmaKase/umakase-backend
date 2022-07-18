@@ -1,7 +1,23 @@
+# Basic 
 node_modules/
 .env
+
+# Build
 dist/
+
+# Mac
 .DS_Store
 
+# Lock files
 yarn.lock
 package-lock.json
+
+# Food images 
+storage/foods/*
+
+# Logs
+storage/logs/*
+
+# test
+test
+testing
