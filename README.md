@@ -19,3 +19,28 @@
 
 - run `yarn seed`
 - *note you must have your files compiled through `yarn build` or `yarn watch` first*
+
+
+### Current folder structure:
+```toml
+├── []  prisma                             # Prisma Things
+│   ├── []  migrations                     # Migrations
+│   ├── []  schema.prisma                  #
+│   └── []  seed                           # contain json data for seeding
+├── []  src
+│   ├── []  config                         # Config/globall constant
+│   ├── []  database                       # File do thing with database only ( like seeding )
+│   ├── []  middleware                     # Express middleware
+│   ├── []  routes                         # Express Route
+│   ├── []  server.ts                      
+│   ├── []  types                          # All Types goes here (except prisma generated type )
+│   └── []  utils                          # Utilities
+├── []  storage                            # Logs, Assests
+│   ├── []  foods                          # Default Foods images
+│   └── []  logs                           # Logs
+├── []  package.json
+├── []  tsconfig.json
+├── []  README.md
+├── []  .env
+└── []  yarn.lock
+```
