@@ -28,9 +28,9 @@ router.post(
   body("username")
     .isLength({ min: 5, max: undefined })
     .withMessage("Username must be at least 5 characters long"),
-  body("password").isLength({ min: 8 }).isStrongPassword({
-    minLength: 5,
-  }),
+  body("password")
+    .isLength({ min: 5 })
+    .withMessage("Password must have at least 5 characters"),
   async (req, res) => {
     const { email, username, password, firstname, lastname } = req.body;
     // Finds the validation errors in this request and wraps them in an object with handy functions
@@ -39,7 +39,7 @@ router.post(
       // return res.status(400).json({ success: false, errors: errors.array() });
       return new ResponseObject(res, false, 400, "Input validation error", {
         error: errors.array(),
-      }).send();
+      });
     }
 
     // ANCHOR Check If Email or Username Existed
@@ -69,7 +69,7 @@ router.post(
     // ANCHOR Start inserting data
     // hashing password
     const hashedPassword = await bcrypt.hash(password, BSalt);
-    const newuser = await dbclient.user.create({
+    await dbclient.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -82,12 +82,8 @@ router.post(
         },
       },
     });
-    return res.json({
-      ok: true,
-      data: {
-        newuser,
-      },
-    });
+
+    return new ResponseObject(res, true, 200, "success");
   }
 );
 // !SECTION
@@ -345,7 +341,7 @@ router.post("/token/logout", async (req, res) => {
       refreshToken: JSON.stringify(refreshTokenList),
     },
   });
-  return new ResponseObject(res, true, 200, "Refresh token removed.").send();
+  return new ResponseObject(res, true, 200, "Refresh token removed.");
 });
 // !SECTION
 
