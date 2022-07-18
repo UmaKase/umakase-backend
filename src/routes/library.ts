@@ -25,7 +25,7 @@ router.post("/room", tokenVerify, async (req, res) => {
     },
   });
 
-  return new ResponseObject(res, true, 200, "Success", updatedRoom).send();
+  return new ResponseObject(res, true, 200, "Success", updatedRoom);
 });
 
 export { router as libraryRouter };

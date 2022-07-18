@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
     },
   });
 
-  return new ResponseObject(res, true, 200, "Successfully", { tags }).send();
+  return new ResponseObject(res, true, 200, "Successfully", { tags });
 });
 
 export { router as tagRouter };

@@ -3,7 +3,6 @@ import { Response } from "express";
 /**
 *  Response class. Use this to have right response syntax
 
-*  **Note** : Remember to use `.send()` function.
 *  @param res
 *  @param status
 *  @param HTTPStatus
@@ -36,6 +35,7 @@ export class ResponseObject {
     this.HTTPStatus = HTTPStatus || 200;
     this.messageOrError = messageOrError;
     this.data = data;
+    this.send();
   }
 
   send() {

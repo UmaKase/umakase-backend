@@ -1,6 +1,7 @@
 import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "../middleware/token";
+import { ResponseObject } from "../utils/ResponseController";
 
 const router = express.Router();
 
@@ -26,12 +27,7 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
     },
   });
 
-  return res.json({
-    ok: true,
-    data: {
-      room,
-    },
-  });
+  return new ResponseObject(res, true, 200, "success", { room });
 });
 
 // _POST Create A Room

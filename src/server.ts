@@ -8,6 +8,7 @@ import { authRouter } from "./routes/auth";
 import { userRouter } from "./routes/user";
 import { foodRouter } from "./routes/food";
 import { tagRouter } from "./routes/tag";
+import { routeLogger } from "./middleware/routeLogger";
 
 const PORT = process.env.PORT || 5000;
 
@@ -19,6 +20,8 @@ async function main() {
       origin: ["https://hoppscotch.io"],
     })
   );
+  app.use(routeLogger);
+
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/user", userRouter);
   app.use("/api/v1/food", foodRouter);
