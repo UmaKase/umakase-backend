@@ -1,5 +1,23 @@
 import { Response } from "express";
 
+/**
+*  Response class. Use this to have right response syntax
+
+*  **Note** : Remember to use `.send()` function.
+*  @param res
+*  @param status
+*  @param HTTPStatus
+*  @param messageOrError 
+*  @param data 
+
+  Example: 
+
+  ```typescript
+  router.get('/', (req, res) => {
+    return new ResponseObject(res, true, 200, "success", { hello: "world" })
+  })
+  ```
+ */
 export class ResponseObject {
   private res: Response;
   private HTTPStatus: number;
