@@ -30,11 +30,14 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
   return new ResponseObject(res, true, 200, "success", { room });
 });
 
-// _POST Create A Room
-// @Body: {string}name, {string[]}roomieNames - username[], {string[]}foodIds.
+/**  _POST Create A Room
+ * @body name,
+ * @body roomieNames - username[]
+ * @body foodIds.
+ */
 router.post("/new", tokenVerify, async (req, res) => {
   const name: string = req.body.name;
-  const roomieNames: string[] = req.body.roomie; // NOTE **INCLUDED** user username. Can be one use only room
+  const roomieNames: string[] = req.body.roomieNames; // NOTE **INCLUDED** user username.
   const foodIds: string[] = req.body.foodIds;
 
   const creator:
@@ -108,6 +111,45 @@ router.post("/new", tokenVerify, async (req, res) => {
     ok: true,
     data: { newRoom },
   });
+});
+
+/**
+ * _POST Add Food To Room
+ * @body  foodIs
+ * @body  roomId
+ */
+router.post("/add", tokenVerify, async (req, res) => {
+  const foodIds: string[] = req.body.foodIds;
+  const roomId: string = req.body.roomId;
+
+  try {
+    const room = await prisma.room.update({
+      where: {
+        id: roomId,
+      },
+      data: {
+        foods: {
+          create: foodIds.map((id) => ({
+            food: {
+              connect: {
+                id,
+              },
+            },
+          })),
+        },
+      },
+    });
+
+    return new ResponseObject(res, true, 200, "Added Successfully", { room });
+  } catch (e) {
+    console.log(e);
+    return new ResponseObject(
+      res,
+      false,
+      400,
+      "Add foods failed. Check food Id or room Id"
+    );
+  }
 });
 
 export { router as roomRouter };

@@ -12,6 +12,7 @@ import { foodRouter } from "./routes/food";
 import { tagRouter } from "./routes/tag";
 import { imagesRouter } from "./routes/images";
 import { Log } from "./utils/Log";
+import { roomRouter } from "./routes/room";
 
 export const logg = new Log(process.env.LOG_PATH);
 export const dbclient = new PrismaClient();
@@ -33,6 +34,7 @@ async function main() {
   app.use("/api/v1/food", foodRouter);
   app.use("/api/v1/tag", tagRouter);
   app.use("/api/v1/img", imagesRouter);
+  app.use("/api/v1/room", roomRouter);
 
   app.get("/", (__, rs) => {
     rs.json({

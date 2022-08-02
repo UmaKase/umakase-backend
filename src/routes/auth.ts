@@ -51,7 +51,9 @@ router.post(
             email,
           },
           {
-            profile: { username },
+            profile: {
+              username,
+            },
           },
         ],
       },
