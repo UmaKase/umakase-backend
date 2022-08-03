@@ -17,7 +17,7 @@ export const tokenVerify = async (
 
   const authHeader: string = req.headers.authorization;
   //getting authMethod and accessToken from the authHeader
-  const authMethod: string = authHeader.split(" ")[0]; //authMethod == Bearer
+  const authMethod: string = authHeader.split(" ")[0];
   const accessToken: string = authHeader.split(" ")[1];
 
   //check is the authMethod & accessToken exist and the is method correct
