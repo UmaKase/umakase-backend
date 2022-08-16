@@ -13,6 +13,7 @@ import jwt from "jsonwebtoken";
 import { jwtDecode, jwtVerify } from "../utils/jwtController";
 import { ResponseObject } from "../utils/ResponseController";
 import { Profile, User } from "@prisma/client";
+import { createTempUser } from "../utils/tmpUser";
 
 const router = express.Router();
 
@@ -25,6 +26,8 @@ router.get("/", (_, res) => {
 router.post(
   "/register",
   // Input validation
+  // NOTE even if creating a tmp account. YOU STILL NEED TO SEND EMAIL
+  // just send random thing, server will ignore it
   body("email").isEmail().withMessage("Email is not valid"),
   body("username")
     .isLength({ min: 5, max: undefined })
@@ -33,7 +36,19 @@ router.post(
     .isLength({ min: 5 })
     .withMessage("Password must have at least 5 characters"),
   async (req, res) => {
-    const { email, username, password, firstname, lastname } = req.body;
+    const { email, username, password, firstname, lastname, isTemp } = req.body;
+
+    // Create a temp user and send its id and password to client
+    if (isTemp) {
+      const { user: tmpUser, tmpPass } = await createTempUser();
+      if (tmpUser) {
+        return new ResponseObject(res, true, 200, "created", {
+          tmpUser,
+          tmpPass,
+        });
+      }
+    }
+
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -148,7 +163,7 @@ router.post("/login", async (req, res) => {
 
   await dbclient.user.update({
     where: {
-      email: user.email,
+      email: user.email || undefined,
     },
     data: {
       refreshToken: JSON.stringify(newRefreshToken),
