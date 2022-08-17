@@ -13,10 +13,11 @@ model User {
   id           String   @id @default(uuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  email        String   @unique
+  email        String?  @unique
   password     String
   refreshToken String?  @db.Text
   profile      Profile?
+  tmpId        String?  @unique
 }
 
 // MODEL Profile
