@@ -12,7 +12,7 @@ export const createTempUser = async () => {
   const tmpPass = generateName();
   // hashing password
   const hashedPassword = await bcrypt.hash(tmpPass, BSalt);
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       password: hashedPassword,
       tmpId,
@@ -25,7 +25,7 @@ export const createTempUser = async () => {
   });
 
   return {
-    user,
+    tmpId,
     tmpPass,
   };
 };

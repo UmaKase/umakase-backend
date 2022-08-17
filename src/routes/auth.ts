@@ -40,10 +40,10 @@ router.post(
 
     // Create a temp user and send its id and password to client
     if (isTemp) {
-      const { user: tmpUser, tmpPass } = await createTempUser();
-      if (tmpUser) {
+      const { tmpId, tmpPass } = await createTempUser();
+      if (tmpId) {
         return new ResponseObject(res, true, 200, "created", {
-          tmpUser,
+          tmpId,
           tmpPass,
         });
       }
@@ -164,6 +164,7 @@ router.post("/login", async (req, res) => {
   await dbclient.user.update({
     where: {
       email: user.email || undefined,
+      tmpId: user.tmpId || undefined,
     },
     data: {
       refreshToken: JSON.stringify(newRefreshToken),
