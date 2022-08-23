@@ -22,7 +22,7 @@
 
 
 ### Current folder structure:
-```toml
+```
 ├── []  prisma                             # Prisma Things
 │   ├── []  migrations                     # Migrations
 │   ├── []  schema.prisma                  #
