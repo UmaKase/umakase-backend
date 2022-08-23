@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 /*
   _GET Get Tags
-  Query: limit : number
+  Query: take : number
   Query: page : number
 */
 router.get("/", async (req, res) => {
@@ -28,6 +28,33 @@ router.get("/", async (req, res) => {
   });
 
   return new ResponseObject(res, true, 200, "Successfully", { tags });
+});
+
+/**
+ * _GET Search Tags
+ * Query: name : string
+ * Query: take : number
+ * Query: page : number
+ */
+router.get("/search", async (req, res) => {
+  const name = req.query.name as string;
+  const take = Number(req.query.take) || 10;
+  const skip: number =
+    take * (Number(req.query.page) - 1) > 0
+      ? take * (Number(req.query.page) - 1)
+      : 0;
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      name: {
+        contains: name,
+      },
+    },
+    take,
+    skip,
+  });
+
+  return new ResponseObject(res, true, 200, "Success", { tags });
 });
 
 export { router as tagRouter };
