@@ -6,6 +6,12 @@ import fs from "fs";
 
 const router = express.Router();
 
+/*
+  ************************************
+  * _API /api/v1/img                *
+  ************************************
+*/
+
 router.get("/food/:name", tokenVerify, async (req, res) => {
   const imageName = req.params.name;
   if (!imageName) {
