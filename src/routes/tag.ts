@@ -24,6 +24,7 @@ router.get("/", async (req, res) => {
         include: {
           food: true,
         },
+        take: 1,
       },
     },
   });
