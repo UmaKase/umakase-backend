@@ -8,6 +8,12 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 /*
+  ************************************
+  * _API /api/v1/food                *
+  ************************************
+*/
+
+/*
   Get Foods From *Big Database* With Name or Tags Name ( in Query)
   Query: name
   Query: tagName
@@ -17,12 +23,12 @@ router.get("/db", async (req, res) => {
   console.log({ name, tagName });
   const whereClause = name
     ? {
-        name: {
-          contains: name as string,
-        },
-      }
+      name: {
+        contains: name as string,
+      },
+    }
     : tagName
-    ? {
+      ? {
         tags: {
           some: {
             tag: {
@@ -31,7 +37,7 @@ router.get("/db", async (req, res) => {
           },
         },
       }
-    : {};
+      : {};
   const foods = await prisma.food.findMany({
     where: whereClause,
   });
@@ -45,11 +51,12 @@ router.get("/db", async (req, res) => {
 // _POST Upload Images and Tag
 //  NOTE: This is a multipart/media request ("not json")
 router.post(
-  "/update",
+  "/add",
   tokenVerify,
   multerConfig.single("image"),
   async (req, res) => {
-    const { name, altName, country, tagIds } = req.body;
+    const { name, altName, country, } = req.body;
+    const tagIds = req.body.tagIds || [];
 
     // Check file and get filename for saving
     const file = req.file;

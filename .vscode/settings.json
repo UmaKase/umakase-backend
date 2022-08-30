@@ -3,122 +3,123 @@
 	"outline.showProperties": false,
 	"commentAnchors.workspace.lazyLoad": true,
 	"commentAnchors.tags.list": [
-	{
-	      "tag": "_HANDLER",
-	      "scope": "file",
-	      "iconColor": "#689f38",
-	      "highlightColor": "#8bc34a",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "AXIOS",
-	      "scope": "file",
-	      "iconColor": "#ff8f00",
-	      "highlightColor": "#ff6f00",
-	      "styleComment": false
-	    },
-
-	    {
-	      "tag": "SOCKET",
-	      "scope": "file",
-	      "iconColor": "#039be5",
-	      "highlightColor": "#03a9f4",
-	      "styleComment": false
-	    },
-
-	    {
-	      "tag": "_GET",
-	      "scope": "file",
-	      "iconColor": "#f06292",
-	      "highlightColor": "#f06292",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "_POST",
-	      "scope": "file",
-	      "iconColor": "#b39ddb",
-	      "highlightColor": "#b39ddb",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "_PUT",
-	      "scope": "file",
-	      "iconColor": "#42a5f5",
-	      "highlightColor": "#42a5f5",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "_PATCH",
-	      "scope": "file",
-	      "iconColor": "#42a5f5",
-	      "highlightColor": "#42a5f5",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "_DEL",
-	      "scope": "file",
-	      "iconColor": "#ff5252",
-	      "highlightColor": "#ff5252",
-	      "styleComment": false
-	    },
-
-	    {
-	      "tag": "_API",
-	      "scope": "file",
-	      "iconColor": "#af52bf",
-	      "highlightColor": "#af52bf",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "_CASE",
-	      "scope": "file",
-	      "iconColor": "#651fff",
-	      "highlightColor": "#651fff",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "STEP",
-	      "scope": "file",
-	      "iconColor": "#b39ddb",
-	      "highlightColor": "#b39ddb",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "LOGIC",
-	      "scope": "file",
-	      "iconColor": "#76ff03",
-	      "highlightColor": "#76ff03",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "_LOG",
-	      "scope": "file",
-	      "iconColor": "#76ff03",
-	      "highlightColor": "#76ff03",
-	      "styleComment": false
-	    },
-
-	    {
-	      "tag": "MODEL",
-	      "scope": "file",
-	      "iconColor": "#76ff03",
-	      "highlightColor": "#76ff03",
-	      "styleComment": false
-	    },
-
-	    {
-	      "tag": "RELATION",
-	      "scope": "file",
-	      "iconColor": "#af52bf",
-	      "highlightColor": "#af52bf",
-	      "styleComment": false
-	    },
-	    {
-	      "tag": "ROUTE",
-	      "scope": "file",
-	      "iconColor": "#ff6f00",
-	      "highlightColor": "#ff6f00",
-	      "styleComment": false
-	    }
-	  ],
+		{
+			"tag": "_HANDLER",
+			"scope": "file",
+			"iconColor": "#689f38",
+			"highlightColor": "#8bc34a",
+			"styleComment": false
+		},
+		{
+			"tag": "AXIOS",
+			"scope": "file",
+			"iconColor": "#ff8f00",
+			"highlightColor": "#ff6f00",
+			"styleComment": false
+		},
+		{
+			"tag": "SOCKET",
+			"scope": "file",
+			"iconColor": "#039be5",
+			"highlightColor": "#03a9f4",
+			"styleComment": false
+		},
+		{
+			"tag": "_GET",
+			"scope": "file",
+			"iconColor": "#f06292",
+			"highlightColor": "#f06292",
+			"styleComment": false
+		},
+		{
+			"tag": "_POST",
+			"scope": "file",
+			"iconColor": "#b39ddb",
+			"highlightColor": "#b39ddb",
+			"styleComment": false
+		},
+		{
+			"tag": "_PUT",
+			"scope": "file",
+			"iconColor": "#42a5f5",
+			"highlightColor": "#42a5f5",
+			"styleComment": false
+		},
+		{
+			"tag": "_PATCH",
+			"scope": "file",
+			"iconColor": "#42a5f5",
+			"highlightColor": "#42a5f5",
+			"styleComment": false
+		},
+		{
+			"tag": "_DEL",
+			"scope": "file",
+			"iconColor": "#ff5252",
+			"highlightColor": "#ff5252",
+			"styleComment": false
+		},
+		{
+			"tag": "_API",
+			"scope": "file",
+			"iconColor": "#af52bf",
+			"highlightColor": "#af52bf",
+			"styleComment": false
+		},
+		{
+			"tag": "_CASE",
+			"scope": "file",
+			"iconColor": "#651fff",
+			"highlightColor": "#651fff",
+			"styleComment": false
+		},
+		{
+			"tag": "STEP",
+			"scope": "file",
+			"iconColor": "#b39ddb",
+			"highlightColor": "#b39ddb",
+			"styleComment": false
+		},
+		{
+			"tag": "LOGIC",
+			"scope": "file",
+			"iconColor": "#76ff03",
+			"highlightColor": "#76ff03",
+			"styleComment": false
+		},
+		{
+			"tag": "_LOG",
+			"scope": "file",
+			"iconColor": "#76ff03",
+			"highlightColor": "#76ff03",
+			"styleComment": false
+		},
+		{
+			"tag": "MODEL",
+			"scope": "file",
+			"iconColor": "#76ff03",
+			"highlightColor": "#76ff03",
+			"styleComment": false
+		},
+		{
+			"tag": "RELATION",
+			"scope": "file",
+			"iconColor": "#af52bf",
+			"highlightColor": "#af52bf",
+			"styleComment": false
+		},
+		{
+			"tag": "ROUTE",
+			"scope": "file",
+			"iconColor": "#ff6f00",
+			"highlightColor": "#ff6f00",
+			"styleComment": false
+		}
+	],
+	"[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features",
+		"editor.tabSize": 2,
+		"editor.insertSpaces": true,
+		"editor.detectIndentation": false
+	},
 }

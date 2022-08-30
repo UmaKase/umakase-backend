@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import { tokenVerify } from "../middleware/token";
 import { ResponseObject } from "../utils/ResponseController";
 const router = express.Router();
 
@@ -36,7 +37,7 @@ router.get("/", async (req, res) => {
  * Query: take : number
  * Query: page : number
  */
-router.get("/search", async (req, res) => {
+router.get("/search", tokenVerify, async (req, res) => {
   const name = req.query.name as string;
   const take = Number(req.query.take) || 10;
   const skip: number =

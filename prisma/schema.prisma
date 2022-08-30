@@ -12,7 +12,7 @@ datasource db {
 model User {
   id           String   @id @default(uuid())
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime @default(now()) @updatedAt
   email        String?  @unique
   password     String
   refreshToken String?  @db.Text
@@ -37,20 +37,24 @@ model Profile {
 // SECTION Foods
 // MODEL Food
 model Food {
-  id      String         @id @default(uuid())
-  name    String?
-  altName String?
-  country String?
-  img     String?
-  tags    TagsOnFoods[]
-  room    FoodsOnRooms[]
+  id        String         @id @default(uuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
+  name      String?
+  altName   String?
+  country   String?
+  img       String?
+  tags      TagsOnFoods[]
+  room      FoodsOnRooms[]
 }
 
 // MODEL Tag
 model Tag {
-  id   String        @id @default(uuid())
-  name String
-  food TagsOnFoods[]
+  id        String        @id @default(uuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @default(now()) @updatedAt
+  name      String
+  food      TagsOnFoods[]
 }
 
 // RELATION TagsOnFood || Many - Many
@@ -71,6 +75,8 @@ model TagsOnFoods {
 model Room {
   id        String            @id @default(uuid())
   name      String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @default(now()) @updatedAt
   user      ProfilesOnRooms[]
   foods     FoodsOnRooms[]
   creator   Profile           @relation(fields: [creatorId], references: [id])
