@@ -5,7 +5,6 @@
 */
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { tokenVerify } from "../middleware/token";
 import { ResponseObject } from "../utils/ResponseController";
 
 const router = express.Router();
@@ -17,7 +16,7 @@ const prisma = new PrismaClient();
 * @Query page : number
 * @Query excludes: string[] - tagIds
 */
-router.get("/", tokenVerify, async (req, res) => {
+router.get("/", async (req, res) => {
   const take: number = Number(req.query.take) || 10;
   // -- Page actually start from 0, but in pagination its start from 1
   const page: number = take * (Number(req.query.page) - 1 || 0);
@@ -51,7 +50,7 @@ router.get("/", tokenVerify, async (req, res) => {
  * @Query page : number
  * @Query excludes: string[] tags ids
  */
-router.get("/search", tokenVerify, async (req, res) => {
+router.get("/search", async (req, res) => {
   const name = req.query.name as string;
   const take = Number(req.query.take) || 10;
   const skip: number =
