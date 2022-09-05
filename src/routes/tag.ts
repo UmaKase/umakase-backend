@@ -1,22 +1,33 @@
+/*
+  ************************************
+  * _API /api/v1/tag                *
+  ************************************
+*/
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { tokenVerify } from "../middleware/token";
 import { ResponseObject } from "../utils/ResponseController";
-const router = express.Router();
 
+const router = express.Router();
 const prisma = new PrismaClient();
 
-/*
-  _GET Get Tags
-  Query: take : number
-  Query: page : number
+/**
+* _GET Get Tags
+* @Query take : number
+* @Query page : number
+* @Query excludes: string[] - tagIds
 */
 router.get("/", async (req, res) => {
   const take: number = Number(req.query.take) || 10;
   // -- Page actually start from 0, but in pagination its start from 1
   const page: number = take * (Number(req.query.page) - 1 || 0);
+  const excludes: string[] = (req.query.excludes ? (typeof req.query.excludes === 'string' ? [req.query.excludes] : req.query.excludes) : []) as string[];
 
   const tags = await prisma.tag.findMany({
+    where: {
+      id: {
+        notIn: excludes
+      }
+    },
     take,
     skip: page,
     include: {
@@ -34,23 +45,28 @@ router.get("/", async (req, res) => {
 
 /**
  * _GET Search Tags
- * Query: name : string
- * Query: take : number
- * Query: page : number
+ * @Query name : string
+ * @Query take : number
+ * @Query page : number
+ * @Query excludes: string[] tags ids
  */
-router.get("/search", tokenVerify, async (req, res) => {
+router.get("/search", async (req, res) => {
   const name = req.query.name as string;
   const take = Number(req.query.take) || 10;
   const skip: number =
     take * (Number(req.query.page) - 1) > 0
       ? take * (Number(req.query.page) - 1)
       : 0;
+  const excludes: string[] = (req.query.excludes ? (typeof req.query.excludes === 'string' ? [req.query.excludes] : req.query.excludes) : []) as string[];
 
   const tags = await prisma.tag.findMany({
     where: {
       name: {
         contains: name,
       },
+      id: {
+        notIn: excludes
+      }
     },
     take,
     skip,
