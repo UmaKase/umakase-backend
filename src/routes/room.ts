@@ -1,6 +1,7 @@
+import { helper } from "@helper";
 import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
-import { tokenVerify } from "../middleware/token";
+import { tokenVerify } from "@middleware/token";
 import { ResponseObject } from "../utils/ResponseController";
 
 const router = express.Router();
@@ -9,7 +10,7 @@ const prisma = new PrismaClient();
 
 // _GET Room Info
 router.get("/info/:id", tokenVerify, async (req, res) => {
-  const id = req.params.id;
+  const id: string = req.params.id;
   const room = await prisma.room.findFirst({
     where: { id },
     include: {
@@ -30,15 +31,17 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
   return new ResponseObject(res, true, 200, "success", { room });
 });
 
-/**  _POST Create A Room
- * @body name,
- * @body roomieNames - username[]
- * @body foodIds.
+/*
+ * _POST Create A Room
+ * @body string    name
+ * @body string[]  roomieNames - username[],
+ * @body string[]  foodIds.
  */
 router.post("/new", tokenVerify, async (req, res) => {
   const name: string = req.body.name;
   const roomieNames: string[] = req.body.roomieNames; // NOTE **INCLUDED** user username.
   const foodIds: string[] = req.body.foodIds;
+  const isDefaultRoom: boolean = req.body.isDefaultRoom;
 
   const creator:
     | (Profile & {
@@ -72,6 +75,13 @@ router.post("/new", tokenVerify, async (req, res) => {
     });
   }
 
+  const roomies = await helper.getUserProfiles(roomieNames);
+
+  let foodToAdd: string[] = foodIds;
+  if (!isDefaultRoom) {
+    helper.mergeFoodByRoommateIds(roomies);
+  }
+
   const newRoom = await prisma.room.create({
     data: {
       name,
@@ -81,7 +91,7 @@ router.post("/new", tokenVerify, async (req, res) => {
         },
       },
       foods: {
-        create: foodIds.map((id) => ({
+        create: foodToAdd.map((id) => ({
           food: {
             connect: {
               id,
