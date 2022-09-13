@@ -13,42 +13,25 @@ const router = express.Router();
 const prisma = new PrismaClient({});
 
 /**
-  _GET Foods From *Big Database* With Name or Tags Name ( in Query)
+  _POST Get Foods From *Big Database* With Name or Tags Name ( in Query)
 * NOTE: This route don't need token to get
 * @Query string[] name
 * @Query string[] tagIds 
-* @Query string[] excludeTagIds - Food Ids
 * @Query string[] tagName
 * @Query number take 
 * @Query number page
+* @Body string[] excludeTags - Tag Ids
+* @Body string[] excludeFoods - Food Ids
 */
-router.get("/db", async (req, res) => {
+router.post("/db", async (req, res) => {
   const { name, tagName } = req.query;
   const take: number = Number(req.query.take) || 10;
   // -- Page actually start from 0, but in pagination its start from 1
   const page: number = take * (Number(req.query.page) - 1 || 0);
 
-  const tagIds: string[] = (
-    req.query.tagIds
-      ? typeof req.query.tagIds === "string"
-        ? [req.query.tagIds]
-        : req.query.tagIds
-      : []
-  ) as string[];
-  const excludeTags: string[] = (
-    req.query.excludeTagIds
-      ? typeof req.query.excludeTagIds === "string"
-        ? [req.query.excludeTagIds]
-        : req.query.excludeTagIds
-      : []
-  ) as string[];
-  const excludeFoods: string[] = (
-    req.query.excludeFoodIds
-      ? typeof req.query.excludeFoodIds === "string"
-        ? [req.query.excludeFoodIds]
-        : req.query.excludeFoodIds
-      : []
-  ) as string[];
+  const tagIds = req.body.tagIds || [];
+  const excludeTags = req.body.excludeTagIds || [];
+  const excludeFoods = req.body.excludeFoods || [];
 
   const whereClause = name
     ? {
