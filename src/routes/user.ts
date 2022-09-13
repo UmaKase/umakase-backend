@@ -1,5 +1,5 @@
 import express from "express";
-import { tokenVerify } from "../middleware/token";
+import { tokenVerify } from "@middleware/token";
 import { dbclient } from "../server";
 const router = express.Router();
 

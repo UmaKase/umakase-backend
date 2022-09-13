@@ -29,6 +29,29 @@ export class Log {
   log(...things: any[]) {
     console.log(things);
     let data = `[${new Date().toUTCString()} LOG]: \n`;
+    data = this.convertArgsToString(things);
+    data += "-------------***********-------------\n";
+
+    fs.appendFileSync(`${this.path}/${this.logName}`, `${data}`);
+  }
+
+  error(...things: any[]) {
+    console.log(things);
+    let data = `[${new Date().toUTCString()} Error]: \n`;
+    data = this.convertArgsToString(things);
+    data += "-------------***********-------------\n";
+
+    fs.appendFileSync(`${this.path}/${this.logName}`, `${data}`);
+  }
+
+
+  /**
+   * Convert any thing passed to 1 string
+   * @param things anything
+   * @returns conveted things to 1 long string
+   */
+  private convertArgsToString(things: any[]) {
+    let data = "";
     things.forEach((thing) => {
       switch (typeof thing) {
         case "object":
@@ -47,8 +70,7 @@ export class Log {
           data += String(thing) + "\n";
       }
     });
-    data += "-------------***********-------------\n";
-    fs.appendFileSync(`${this.path}/${this.logName}`, `${data}`);
+    return data;
   }
 
   private updateName() {
