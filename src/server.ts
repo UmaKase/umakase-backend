@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import "module-alias/register";
 
 // Middware
 import cors from "cors";

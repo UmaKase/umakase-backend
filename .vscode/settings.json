@@ -1,7 +1,8 @@
 {
-	"outline.showVariables": false,
+	"outline.showVariables": true,
 	"outline.showProperties": false,
 	"commentAnchors.workspace.lazyLoad": true,
+	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"commentAnchors.tags.list": [
 		{
 			"tag": "_HANDLER",
