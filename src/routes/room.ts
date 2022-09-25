@@ -3,6 +3,7 @@ import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "@middleware/token";
 import { ResponseObject } from "@utils/ResponseController";
+import { Log } from "@utils/Log";
 
 /*
  ************************************
@@ -161,7 +162,7 @@ router.post("/add", tokenVerify, async (req, res) => {
       room,
     });
   } catch (e) {
-    console.log(e);
+    new Log().error(e);
     return new ResponseObject(
       res,
       false,

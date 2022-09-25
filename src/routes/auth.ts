@@ -48,7 +48,6 @@ router.post(
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      // return res.status(400).json({ success: false, errors: errors.array() });
       return new ResponseObject(res, false, 400, "Input validation error", {
         error: errors.array(),
       });
