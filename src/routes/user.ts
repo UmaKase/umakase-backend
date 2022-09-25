@@ -1,6 +1,15 @@
 import express from "express";
 import { tokenVerify } from "@middleware/token";
-import { dbclient } from "../server";
+import { ResponseObject } from "@utils/ResponseController";
+import { PrismaClient } from "@prisma/client";
+
+/*
+ ************************************
+ * _API /api/v1/user                *
+ ************************************
+ */
+
+const dbclient = new PrismaClient();
 const router = express.Router();
 
 router.get("/profile", tokenVerify, async (req, res) => {
@@ -19,20 +28,11 @@ router.get("/profile", tokenVerify, async (req, res) => {
     },
   });
   if (!user) {
-    return res.json({
-      ok: false,
-      error: {
-        message: "User not found",
-      },
-    });
-  } else {
-    return res.json({
-      ok: true,
-      data: {
-        user,
-      },
-    });
+    return new ResponseObject(res, false, 400, "User not found");
   }
+  return new ResponseObject(res, true, 200, "User infomation in body", {
+    user,
+  });
 });
 
 router.get("/search", tokenVerify, async (req, res) => {

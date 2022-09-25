@@ -11,7 +11,9 @@
   },
   "_moduleAliases": {
     "@middleware": "dist/middleware",
-    "@helper": "dist/utils/helper.js"
+    "@helper": "dist/utils/helper.js",
+    "@utils": "dist/utils",
+    "@config": "dist/config"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

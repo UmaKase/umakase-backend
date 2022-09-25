@@ -1,14 +1,15 @@
+import { tokenVerify } from "@middleware/token";
+import { Food, PrismaClient, TagsOnFoods } from "@prisma/client";
+import { ResponseObject } from "@utils/ResponseController";
+import express from "express";
+import multerConfig from "@middleware/multerConfig";
+const router = express.Router();
+
 /*
  ************************************
  * _API /api/v1/food                *
  ************************************
  */
-import { Food, PrismaClient, TagsOnFoods } from "@prisma/client";
-import express from "express";
-import multerConfig from "../middleware/multerConfig";
-import { tokenVerify } from "../middleware/token";
-import { ResponseObject } from "../utils/ResponseController";
-const router = express.Router();
 
 const prisma = new PrismaClient({});
 
@@ -16,10 +17,10 @@ const prisma = new PrismaClient({});
   _POST Get Foods From *Big Database* With Name or Tags Name ( in Query)
 * NOTE: This route don't need token to get
 * @Query string[] name
-* @Query string[] tagIds 
 * @Query string[] tagName
 * @Query number take 
 * @Query number page
+* @Body string[] tagIds 
 * @Body string[] excludeTags - Tag Ids
 * @Body string[] excludeFoods - Food Ids
 */
@@ -78,8 +79,7 @@ router.post("/db", async (req, res) => {
     skip: page,
   });
 
-  return res.json({
-    ok: true,
+  return new ResponseObject(res, true, 200, "Foods contain in response", {
     foods,
   });
 });
