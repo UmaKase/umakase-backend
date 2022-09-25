@@ -1,18 +1,17 @@
 import express from "express";
-import { tokenVerify } from "../middleware/token";
-import { ResponseObject } from "../utils/ResponseController";
+import { ResponseObject } from "@utils/ResponseController";
 import path from "path";
 import fs from "fs";
 
 const router = express.Router();
 
 /*
-  ************************************
-  * _API /api/v1/img                *
-  ************************************
-*/
+ ************************************
+ * _API /api/v1/img                *
+ ************************************
+ */
 
-router.get("/food/:name", tokenVerify, async (req, res) => {
+router.get("/food/:name", async (req, res) => {
   const imageName = req.params.name;
   if (!imageName) {
     return new ResponseObject(res, false, 404, "Please provide images id");
@@ -28,8 +27,6 @@ router.get("/food/:name", tokenVerify, async (req, res) => {
   );
 
   if (!fs.existsSync(imgPath)) {
-    console.log(imgPath);
-
     return new ResponseObject(
       res,
       false,

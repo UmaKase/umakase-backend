@@ -1,26 +1,22 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
-import { dbclient } from "../server";
 import {
   accessTokenSecret,
   accessToken_Exp,
   BSalt,
   refreshTokenSecret,
   refreshToken_Exp,
-} from "../config/config";
+} from "@config/config";
 import jwt from "jsonwebtoken";
-import { jwtDecode, jwtVerify } from "../utils/jwtController";
-import { ResponseObject } from "../utils/ResponseController";
-import { Profile, User } from "@prisma/client";
-import { createTempUser } from "../utils/tmpUser";
+import { PrismaClient, Profile, User } from "@prisma/client";
+import { createTempUser } from "@utils/tmpUser";
+import { ResponseObject } from "@utils/ResponseController";
+import { jwtDecode, jwtVerify } from "@utils/jwtController";
+
+const dbclient = new PrismaClient();
 
 const router = express.Router();
-
-router.get("/", (_, res) => {
-  console.log("in");
-  res.json({ ok: "ok" });
-});
 
 // SECTION Register
 router.post(
@@ -52,7 +48,6 @@ router.post(
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      // return res.status(400).json({ success: false, errors: errors.array() });
       return new ResponseObject(res, false, 400, "Input validation error", {
         error: errors.array(),
       });
@@ -75,13 +70,12 @@ router.post(
     });
 
     if (users.length > 0) {
-      return res.json({
-        success: false,
-        error: {
-          code: "",
-          message: "Email or Username already in use",
-        },
-      });
+      return new ResponseObject(
+        res,
+        false,
+        400,
+        "Email or Username already in use"
+      );
     }
 
     // ANCHOR Start inserting data
@@ -124,12 +118,7 @@ router.post("/login", async (req, res) => {
   });
 
   if (!user) {
-    return res.json({
-      ok: false,
-      error: {
-        message: "User not found!",
-      },
-    });
+    return new ResponseObject(res, false, 400, "User not found!");
   }
 
   // ANCHOR 2 filter : Password validation
@@ -292,13 +281,9 @@ router.post("/token/logout", async (req, res) => {
 
   //get the refreshToken list from database by tokenPoayloads id
   const refreshTokenPayloads = jwtDecode<RefreshToken>(refreshToken);
+
   if (!refreshTokenPayloads) {
-    return res.json({
-      success: false,
-      error: {
-        message: "Refresh Token not valid",
-      },
-    });
+    return new ResponseObject(res, false, 400, "Refresh Token not valid");
   }
   const user = await dbclient.user.findFirst({
     where: {

@@ -2,10 +2,16 @@ import { helper } from "@helper";
 import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "@middleware/token";
-import { ResponseObject } from "../utils/ResponseController";
+import { ResponseObject } from "@utils/ResponseController";
+import { Log } from "@utils/Log";
+
+/*
+ ************************************
+ * _API /api/v1/room                *
+ ************************************
+ */
 
 const router = express.Router();
-
 const prisma = new PrismaClient();
 
 // _GET Room Info
@@ -34,14 +40,14 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
 /*
  * _POST Create A Room
  * @body string    name
- * @body string[]  roomieNames - username[],
+ * @body string[]  roomies - username[],
  * @body string[]  foodIds.
  */
 router.post("/new", tokenVerify, async (req, res) => {
   const name: string = req.body.name;
-  const roomieNames: string[] = req.body.roomieNames; // NOTE **INCLUDED** user username.
+  const roomieNames: string[] = req.body.roomies || []; // NOTE **INCLUDED** create user's username.
   const foodIds: string[] = req.body.foodIds;
-  const isDefaultRoom: boolean = req.body.isDefaultRoom;
+  const isDefaultRoom: boolean = req.body.isDefaultRoom || false;
 
   const creator:
     | (Profile & {
@@ -55,31 +61,26 @@ router.post("/new", tokenVerify, async (req, res) => {
   });
 
   if (!creator) {
-    return res.json({
-      ok: false,
-      error: {
-        message: "User Not Found! or Authentication error",
-      },
-    });
+    return new ResponseObject(
+      res,
+      false,
+      400,
+      "User Not Found! or Authentication error"
+    );
   }
 
   if (creator.createdRoom.length > 2) {
-    // Check if User is Premium user?
+    // TODO Check if User is Premium user?
     // -------------------
     // Normal user can only able to create two room
-    return res.json({
-      ok: false,
-      error: {
-        message: "You can only create one room",
-      },
-    });
+    return new ResponseObject(res, false, 400, "You can only create one room");
   }
 
   const roomies = await helper.getUserProfiles(roomieNames);
 
   let foodToAdd: string[] = foodIds;
   if (!isDefaultRoom) {
-    helper.mergeFoodByRoommateIds(roomies);
+    foodToAdd = helper.mergeFoodByRoommateIds(roomies);
   }
 
   const newRoom = await prisma.room.create({
@@ -109,17 +110,24 @@ router.post("/new", tokenVerify, async (req, res) => {
     },
     include: {
       foods: {
+        select: {
+          foodId: false,
+          roomId: false,
+        },
         include: { food: true },
       },
       user: {
+        select: {
+          profileId: false,
+          roomId: false,
+        },
         include: { profile: true },
       },
     },
   });
 
-  return res.json({
-    ok: true,
-    data: { newRoom },
+  return new ResponseObject(res, true, 200, "created successfully", {
+    newRoom,
   });
 });
 
@@ -150,9 +158,11 @@ router.post("/add", tokenVerify, async (req, res) => {
       },
     });
 
-    return new ResponseObject(res, true, 200, "Added Successfully", { room });
+    return new ResponseObject(res, true, 200, "Added Successfully", {
+      room,
+    });
   } catch (e) {
-    console.log(e);
+    new Log().error(e);
     return new ResponseObject(
       res,
       false,
