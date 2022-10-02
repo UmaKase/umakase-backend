@@ -3,7 +3,6 @@ import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "@middleware/token";
 import { ResponseObject } from "@utils/ResponseController";
-import { Log } from "@utils/Log";
 
 /*
  ************************************
@@ -129,47 +128,6 @@ router.post("/new", tokenVerify, async (req, res) => {
   return new ResponseObject(res, true, 200, "created successfully", {
     newRoom,
   });
-});
-
-/**
- * _POST Add Food To Room
- * @body  foodIs
- * @body  roomId
- */
-router.post("/add", tokenVerify, async (req, res) => {
-  const foodIds: string[] = req.body.foodIds;
-  const roomId: string = req.body.roomId;
-
-  try {
-    const room = await prisma.room.update({
-      where: {
-        id: roomId,
-      },
-      data: {
-        foods: {
-          create: foodIds.map((id) => ({
-            food: {
-              connect: {
-                id,
-              },
-            },
-          })),
-        },
-      },
-    });
-
-    return new ResponseObject(res, true, 200, "Added Successfully", {
-      room,
-    });
-  } catch (e) {
-    new Log().error(e);
-    return new ResponseObject(
-      res,
-      false,
-      400,
-      "Add foods failed. Check food Id or room Id"
-    );
-  }
 });
 
 export { router as roomRouter };
