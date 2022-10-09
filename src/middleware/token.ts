@@ -1,4 +1,5 @@
-import { ResponseObject } from "@utils/ResponseController";
+import HttpStatusCode from "@utils/httpStatus";
+import { Responser } from "@utils/ResponseController";
 import { Request, Response, NextFunction } from "express";
 import { accessTokenSecret } from "../config/config";
 import { jwtVerify } from "../utils/jwtController";
@@ -10,10 +11,9 @@ export const tokenVerify = async (
 ) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return new ResponseObject(
+    return Responser(
       res,
-      false,
-      401,
+      HttpStatusCode.UNAUTHORIZED,
       "Error : Missing Authorization Header provided!"
     );
   }
@@ -25,16 +25,28 @@ export const tokenVerify = async (
 
   //check is the authMethod & accessToken exist and the is method correct
   if (!authMethod || !accessToken) {
-    return new ResponseObject(res, false, 401, "Error : Auth Token Not Found!");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Error : Auth Token Not Found!"
+    );
   }
   if (authMethod !== "Bearer") {
-    return new ResponseObject(res, false, 401, "Error : Invalid auth method!");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Error : Invalid auth method!"
+    );
   }
 
   const claims = jwtVerify<AccessToken>(accessToken, accessTokenSecret);
 
   if (!claims) {
-    return new ResponseObject(res, false, 401, "Error : Invalid token!");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Error : Invalid token!"
+    );
   }
   req.profile = claims;
   return next();

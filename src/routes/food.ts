@@ -1,8 +1,9 @@
 import { tokenVerify } from "@middleware/token";
 import { Food, PrismaClient, TagsOnFoods } from "@prisma/client";
-import { ResponseObject } from "@utils/ResponseController";
+import { Responser } from "@utils/ResponseController";
 import express from "express";
 import multerConfig from "@middleware/multerConfig";
+import HttpStatusCode from "@utils/httpStatus";
 const router = express.Router();
 
 /*
@@ -79,7 +80,7 @@ router.post("/db", async (req, res) => {
     skip: page,
   });
 
-  return new ResponseObject(res, true, 200, "Foods contain in response", {
+  return Responser(res, HttpStatusCode.OK, "Foods contain in response", {
     foods,
   });
 });
@@ -97,7 +98,7 @@ router.post(
     // Check file and get filename for saving
     const file = req.file;
     if (!file) {
-      return new ResponseObject(res, false, 400, "Please upload a file");
+      return Responser(res, HttpStatusCode.BAD_REQUEST, "Please upload a file");
     }
     const img = file.filename;
 
@@ -111,7 +112,11 @@ router.post(
     });
 
     if (!user) {
-      return new ResponseObject(res, false, 400, "User not authenticated");
+      return Responser(
+        res,
+        HttpStatusCode.UNAUTHORIZED,
+        "User not authenticated"
+      );
     }
 
     // Get Tags
@@ -140,7 +145,7 @@ router.post(
       },
     });
 
-    return new ResponseObject(res, true, 200, "Created", { newFood });
+    return Responser(res, HttpStatusCode.OK, "Created", { newFood });
   }
 );
 

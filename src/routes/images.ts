@@ -1,7 +1,8 @@
 import express from "express";
-import { ResponseObject } from "@utils/ResponseController";
+import { Responser } from "@utils/ResponseController";
 import path from "path";
 import fs from "fs";
+import HttpStatusCode from "@utils/httpStatus";
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ const router = express.Router();
 router.get("/food/:name", async (req, res) => {
   const imageName = req.params.name;
   if (!imageName) {
-    return new ResponseObject(res, false, 404, "Please provide images id");
+    return Responser(res, HttpStatusCode.NOT_FOUND, "Please provide images id");
   }
 
   const imgPath = path.join(
@@ -27,10 +28,9 @@ router.get("/food/:name", async (req, res) => {
   );
 
   if (!fs.existsSync(imgPath)) {
-    return new ResponseObject(
+    return Responser(
       res,
-      false,
-      404,
+      HttpStatusCode.NOT_FOUND,
       "Can't find image with provided name"
     );
   }

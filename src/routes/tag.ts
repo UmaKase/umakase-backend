@@ -5,7 +5,8 @@
  */
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { ResponseObject } from "../utils/ResponseController";
+import { Responser } from "@utils/ResponseController";
+import HttpStatusCode from "@utils/httpStatus";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -40,7 +41,7 @@ router.post("/", async (req, res) => {
     },
   });
 
-  return new ResponseObject(res, true, 200, "Successfully", { tags });
+  return Responser(res, HttpStatusCode.OK, "Successfully", { tags });
 });
 
 /**
@@ -72,7 +73,7 @@ router.post("/search", async (req, res) => {
     skip,
   });
 
-  return new ResponseObject(res, true, 200, "Success", { tags });
+  return Responser(res, HttpStatusCode.OK, "Success", { tags });
 });
 
 export { router as tagRouter };
