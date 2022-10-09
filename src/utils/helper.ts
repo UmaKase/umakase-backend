@@ -70,7 +70,7 @@ const getUserProfiles = async (username: string[]) => {
  */
 const mergeFoodByRoommateIds = (
   roomies: ProfileWithCreatedRoomAndFoodOnRoom[]
-) => {
+): string[] => {
   const innerJoinFoodIds: string[] = [];
   let foodOnAllRoom: string[] = roomies.flatMap((roomate) =>
     roomate.createdRoom[0].foods.map((f) => f.food.id)
@@ -97,14 +97,18 @@ const mergeFoodByRoommateIds = (
 };
 
 const addRoomMember = async (
-  roomId: string,
-  newRoomies: string[]
+  _: string,
+  // roomId: string,
+  __: string[]
+  // newRoomies: string[]
 ): Promise<[boolean, string, any?]> => {
   return [true, ""];
 };
 const removeRoomMember = async (
-  roomId: string,
-  removeRoomies: string[]
+  _: string,
+  // roomId: string,
+  __: string[]
+  // removeRoomies: string[]
 ): Promise<[boolean, string, any?]> => {
   return [true, ""];
 };
