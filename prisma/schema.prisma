@@ -85,10 +85,11 @@ model Room {
 
 // RELATION Foods On Room || Many - Many
 model FoodsOnRooms {
-  roomId String
-  foodId String
-  room   Room   @relation(fields: [roomId], references: [id])
-  food   Food   @relation(fields: [foodId], references: [id])
+  roomId   String
+  foodId   String
+  room     Room     @relation(fields: [roomId], references: [id])
+  food     Food     @relation(fields: [foodId], references: [id])
+  joinedAt DateTime @default(now())
 
   @@id([roomId, foodId])
   @@index([foodId], map: "FoodsOnRooms_foodId_fkey")
@@ -98,8 +99,9 @@ model FoodsOnRooms {
 model ProfilesOnRooms {
   roomId    String
   profileId String
-  room      Room    @relation(fields: [roomId], references: [id])
-  profile   Profile @relation(fields: [profileId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  joinedAt  DateTime @default(now())
 
   @@id([roomId, profileId])
   @@index([profileId], map: "ProfilesOnRooms_profileId_fkey")

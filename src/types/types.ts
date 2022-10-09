@@ -8,3 +8,5 @@ declare global {
     }
   }
 }
+
+export type RoomEvent = "add-member" | "remove-member" | "update-food";

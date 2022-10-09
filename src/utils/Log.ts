@@ -7,10 +7,6 @@ export class Log {
   private logName: string;
 
   constructor(path?: string) {
-    this.init(path);
-  }
-
-  private init(path?: string) {
     if (path && path.length > 0) {
       const absolutePath = Path.join(__dirname, "..", "..", path);
       if (fs.existsSync(absolutePath)) {
@@ -43,7 +39,6 @@ export class Log {
 
     fs.appendFileSync(`${this.path}/${this.logName}`, `${data}`);
   }
-
 
   /**
    * Convert any thing passed to 1 string

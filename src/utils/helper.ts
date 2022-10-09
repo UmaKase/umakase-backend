@@ -11,6 +11,7 @@ import {
   Profile,
   Room,
 } from "@prisma/client";
+import { RoomEvent } from "types/types";
 import { logg } from "../server";
 
 type ProfileWithCreatedRoomAndFoodOnRoom = Profile & {
@@ -95,7 +96,30 @@ const mergeFoodByRoommateIds = (
   return innerJoinFoodIds;
 };
 
+const addRoomMember = async (
+  roomId: string,
+  newRoomies: string[]
+): Promise<[boolean, string, any?]> => {
+  return [true, ""];
+};
+const removeRoomMember = async (
+  roomId: string,
+  removeRoomies: string[]
+): Promise<[boolean, string, any?]> => {
+  return [true, ""];
+};
+const updateRommFood = async () => {};
+
+function isRoomEvent(event: string): event is RoomEvent {
+  const roomEvents = ["add-member", "remove-member", "update-food"];
+  return roomEvents.includes(event);
+}
+
 export const helper = {
   getUserProfiles,
   mergeFoodByRoommateIds,
+  addRoomMember,
+  removeRoomMember,
+  updateRommFood,
+  isRoomEvent,
 };
