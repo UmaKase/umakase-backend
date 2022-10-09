@@ -15,6 +15,46 @@ const router = express.Router();
 const prisma = new PrismaClient();
 const log = new Log();
 
+/**
+ * _GET User's Rooms
+ */
+router.get("/", tokenVerify, async (req, res) => {
+  const userProfile = await prisma.profile.findFirst({
+    where: {
+      id: req.profile.id,
+    },
+    include: {
+      room: {
+        select: {
+          room: {
+            select: {
+              name: true,
+              id: true,
+            },
+          },
+        },
+        // User Default Room Will Always at index 0
+        orderBy: {
+          joinedAt: "asc",
+        },
+      },
+    },
+  });
+
+  if (!userProfile) {
+    return new ResponseObject(
+      res,
+      false,
+      401,
+      "Authorization Error | User Id Problem"
+    );
+  }
+
+  return new ResponseObject(res, true, 200, "Found room", {
+    rooms: userProfile.room,
+  });
+});
+
 // _GET Room Info
 router.get("/info/:id", tokenVerify, async (req, res) => {
   const id: string = req.params.id;
@@ -34,6 +74,9 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
       _count: true,
     },
   });
+  if (!room) {
+    return new ResponseObject(res, false, 400, "Room not found");
+  }
 
   return new ResponseObject(res, true, 200, "success", { room });
 });
@@ -114,15 +157,15 @@ router.post("/new", tokenVerify, async (req, res) => {
         select: {
           foodId: false,
           roomId: false,
+          food: true,
         },
-        include: { food: true },
       },
       user: {
         select: {
           profileId: false,
           roomId: false,
+          profile: true,
         },
-        include: { profile: true },
       },
     },
   });

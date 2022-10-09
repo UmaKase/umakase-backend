@@ -3,120 +3,104 @@
 	"outline.showProperties": false,
 	"commentAnchors.workspace.lazyLoad": true,
 	"typescript.preferences.importModuleSpecifier": "non-relative",
-	"commentAnchors.tags.list": [
-		{
-			"tag": "_HANDLER",
+	"commentAnchors.tags.anchors": {
+		"_HANDLER": {
 			"scope": "file",
 			"iconColor": "#689f38",
 			"highlightColor": "#8bc34a",
 			"styleComment": false
 		},
-		{
-			"tag": "AXIOS",
+		"AXIOS": {
 			"scope": "file",
 			"iconColor": "#ff8f00",
 			"highlightColor": "#ff6f00",
 			"styleComment": false
 		},
-		{
-			"tag": "SOCKET",
+		"SOCKET": {
 			"scope": "file",
 			"iconColor": "#039be5",
 			"highlightColor": "#03a9f4",
 			"styleComment": false
 		},
-		{
-			"tag": "_GET",
+		"_GET": {
 			"scope": "file",
 			"iconColor": "#f06292",
 			"highlightColor": "#f06292",
 			"styleComment": false
 		},
-		{
-			"tag": "_POST",
+		"_POST": {
 			"scope": "file",
 			"iconColor": "#b39ddb",
 			"highlightColor": "#b39ddb",
 			"styleComment": false
 		},
-		{
-			"tag": "_PUT",
+		"_PUT": {
 			"scope": "file",
 			"iconColor": "#42a5f5",
 			"highlightColor": "#42a5f5",
 			"styleComment": false
 		},
-		{
-			"tag": "_PATCH",
+		"_PATCH": {
 			"scope": "file",
 			"iconColor": "#42a5f5",
 			"highlightColor": "#42a5f5",
 			"styleComment": false
 		},
-		{
-			"tag": "_DEL",
+		"_DEL": {
 			"scope": "file",
 			"iconColor": "#ff5252",
 			"highlightColor": "#ff5252",
 			"styleComment": false
 		},
-		{
-			"tag": "_API",
+		"_API": {
 			"scope": "file",
 			"iconColor": "#af52bf",
 			"highlightColor": "#af52bf",
 			"styleComment": false
 		},
-		{
-			"tag": "_CASE",
+		"_CASE": {
 			"scope": "file",
 			"iconColor": "#651fff",
 			"highlightColor": "#651fff",
 			"styleComment": false
 		},
-		{
-			"tag": "STEP",
+		"STEP": {
 			"scope": "file",
 			"iconColor": "#b39ddb",
 			"highlightColor": "#b39ddb",
 			"styleComment": false
 		},
-		{
-			"tag": "LOGIC",
+		"LOGIC": {
 			"scope": "file",
 			"iconColor": "#76ff03",
 			"highlightColor": "#76ff03",
 			"styleComment": false
 		},
-		{
-			"tag": "_LOG",
+		"_LOG": {
 			"scope": "file",
 			"iconColor": "#76ff03",
 			"highlightColor": "#76ff03",
 			"styleComment": false
 		},
-		{
-			"tag": "MODEL",
+		"MODEL": {
 			"scope": "file",
 			"iconColor": "#76ff03",
 			"highlightColor": "#76ff03",
 			"styleComment": false
 		},
-		{
-			"tag": "RELATION",
+		"RELATION": {
 			"scope": "file",
 			"iconColor": "#af52bf",
 			"highlightColor": "#af52bf",
 			"styleComment": false
 		},
-		{
-			"tag": "ROUTE",
+		"ROUTE": {
 			"scope": "file",
 			"iconColor": "#ff6f00",
 			"highlightColor": "#ff6f00",
 			"styleComment": false
 		}
-	],
+	},
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
 		"editor.insertSpaces": true,
