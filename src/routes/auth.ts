@@ -11,8 +11,9 @@ import {
 import jwt from "jsonwebtoken";
 import { PrismaClient, Profile, User } from "@prisma/client";
 import { createTempUser } from "@utils/tmpUser";
-import { ResponseObject } from "@utils/ResponseController";
+import { Responser } from "@utils/ResponseController";
 import { jwtDecode, jwtVerify } from "@utils/jwtController";
+import HttpStatusCode from "@utils/httpStatus";
 
 const dbclient = new PrismaClient();
 
@@ -38,7 +39,7 @@ router.post(
     if (isTemp) {
       const { tmpId, tmpPass } = await createTempUser();
       if (tmpId) {
-        return new ResponseObject(res, true, 200, "created", {
+        return Responser(res, HttpStatusCode.OK, "created", {
           tmpId,
           tmpPass,
         });
@@ -48,9 +49,14 @@ router.post(
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return new ResponseObject(res, false, 400, "Input validation error", {
-        error: errors.array(),
-      });
+      return Responser(
+        res,
+        HttpStatusCode.BAD_REQUEST,
+        "Input validation error",
+        {
+          error: errors.array(),
+        }
+      );
     }
 
     // ANCHOR Check If Email or Username Existed
@@ -70,10 +76,9 @@ router.post(
     });
 
     if (users.length > 0) {
-      return new ResponseObject(
+      return Responser(
         res,
-        false,
-        400,
+        HttpStatusCode.BAD_REQUEST,
         "Email or Username already in use"
       );
     }
@@ -95,7 +100,7 @@ router.post(
       },
     });
 
-    return new ResponseObject(res, true, 200, "success");
+    return Responser(res, HttpStatusCode.OK, "success");
   }
 );
 // !SECTION
@@ -118,15 +123,17 @@ router.post("/login", async (req, res) => {
   });
 
   if (!user) {
-    return new ResponseObject(res, false, 400, "User not found!");
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "User not found!");
   }
 
   // ANCHOR 2 filter : Password validation
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Username or password not correct" });
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Username or password not correct"
+    );
   }
   //ANCHOR Success sending JWT
   const accessToken: string = jwt.sign(
@@ -164,9 +171,8 @@ router.post("/login", async (req, res) => {
       profile: true,
     },
   });
-  return res.status(200).json({
-    success: true,
-    message: "Valid email & password.",
+
+  return Responser(res, HttpStatusCode.OK, "Valid email & password.", {
     accessToken: accessToken,
     refreshToken: refreshToken,
   });
@@ -177,7 +183,11 @@ router.post("/login", async (req, res) => {
 router.post("/token/access", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return new ResponseObject(res, false, 400, "Auth header not provided");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Auth header not provided"
+    );
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -187,25 +197,30 @@ router.post("/token/access", async (req, res) => {
 
   //check is the authMethod & accessToken exist and the is method correct
   if (!authMethod || !accessToken || authMethod !== "Bearer") {
-    return new ResponseObject(res, false, 400, "Auth method is invalid");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Auth method is invalid"
+    );
   }
 
   const token = jwtVerify<AccessToken>(accessToken, accessTokenSecret);
   if (!token) {
-    return new ResponseObject(res, false, 400, "Token is invalid");
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Token is invalid");
   }
 
-  return new ResponseObject(res, true, 200, "Token is valid");
+  return Responser(res, HttpStatusCode.OK, "Token is valid");
 });
 
 // SECTION Refresh token validation || Create new access token using refresh token
 router.post("/token/refresh", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return res.status(400).json({
-      success: false,
-      message: "Error : Missing Authorization Header provided!",
-    });
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Error : Missing Authorization Header provided!"
+    );
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -215,7 +230,7 @@ router.post("/token/refresh", async (req, res) => {
 
   //check is the authMethod & accessToken exist and the is method correct
   if (!authMethod || !refreshToken || authMethod !== "Bearer") {
-    return new ResponseObject(res, false, 400, "Auth method is invalid");
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Auth method is invalid");
   }
 
   //verify refreshToken
@@ -224,7 +239,7 @@ router.post("/token/refresh", async (req, res) => {
     refreshTokenSecret
   );
   if (!refreshTokenPayloads) {
-    return new ResponseObject(res, false, 400, "Token is invalid");
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Token is invalid");
   }
   const refreshTokenCheck = await dbclient.user.findFirst({
     where: {
@@ -235,24 +250,27 @@ router.post("/token/refresh", async (req, res) => {
   });
   //check if user exist
   if (!refreshTokenCheck) {
-    return new ResponseObject(res, false, 401, "User not existed");
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not existed");
   }
   //check if the refresh token is in the database refresh token string array
   const refreshTokenList = JSON.parse(
     refreshTokenCheck.refreshToken || "[]"
   ) as string[];
   if (!refreshTokenList.includes(refreshToken)) {
-    return new ResponseObject(res, false, 401, "Token is not in the list");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Token is not in the list"
+    );
   }
   //the refresh token is valid so create and return a new access token
   const userInfo = { id: refreshTokenPayloads.id };
   const newAccessToken = jwt.sign(userInfo, accessTokenSecret!, {
     expiresIn: accessToken_Exp,
   });
-  return new ResponseObject(
+  return Responser(
     res,
-    true,
-    200,
+    HttpStatusCode.OK,
     "Refresh token valid, new access token in reps",
     { newAccessToken }
   );
@@ -263,10 +281,11 @@ router.post("/token/refresh", async (req, res) => {
 router.post("/token/logout", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return res.status(400).json({
-      success: false,
-      message: "Error : Missing Authorization Header provided!",
-    });
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Error : Missing Authorization Header provided!"
+    );
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -276,14 +295,18 @@ router.post("/token/logout", async (req, res) => {
 
   //check is the authMethod & accessToken exist and the is method correct
   if (!authMethod || !refreshToken || authMethod !== "Bearer") {
-    return new ResponseObject(res, false, 400, "Auth method is invalid");
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Auth method is invalid");
   }
 
   //get the refreshToken list from database by tokenPoayloads id
   const refreshTokenPayloads = jwtDecode<RefreshToken>(refreshToken);
 
   if (!refreshTokenPayloads) {
-    return new ResponseObject(res, false, 400, "Refresh Token not valid");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Refresh Token not valid"
+    );
   }
   const user = await dbclient.user.findFirst({
     where: {
@@ -294,15 +317,21 @@ router.post("/token/logout", async (req, res) => {
   });
   //if no user
   if (!user) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Error : User not exist!" });
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Error : User not exist!"
+    );
   }
   //check is the token in the list or not
   let refreshTokenList = JSON.parse(user.refreshToken || "[]") as string[];
   //not in the list
   if (!refreshTokenList.includes(refreshToken)) {
-    return new ResponseObject(res, false, 400, "Refresh token is not valid");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Refresh token is not valid"
+    );
   }
   //in the list
   refreshTokenList = refreshTokenList.filter((token) => token != refreshToken);
@@ -315,7 +344,7 @@ router.post("/token/logout", async (req, res) => {
       refreshToken: JSON.stringify(refreshTokenList),
     },
   });
-  return new ResponseObject(res, true, 200, "Refresh token removed.");
+  return Responser(res, 200, "Refresh token removed.");
 });
 // !SECTION
 

@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "../middleware/token";
-import { ResponseObject } from "../utils/ResponseController";
+import { Responser } from "@utils/ResponseController";
+import HttpStatusCode from "@utils/httpStatus";
 const router = express.Router();
 
 const prisma = new PrismaClient();
@@ -25,7 +26,7 @@ router.post("/room", tokenVerify, async (req, res) => {
     },
   });
 
-  return new ResponseObject(res, true, 200, "Success", updatedRoom);
+  return Responser(res, HttpStatusCode.OK, "Success", updatedRoom);
 });
 
 export { router as libraryRouter };

@@ -1,9 +1,10 @@
 import express from "express";
 import { tokenVerify } from "@middleware/token";
-import { ResponseObject } from "@utils/ResponseController";
+import { Responser } from "@utils/ResponseController";
 import { PrismaClient } from "@prisma/client";
 import { Log } from "@utils/Log";
 import { body, validationResult } from "express-validator";
+import HttpStatusCode from "@utils/httpStatus";
 
 /*
  ************************************
@@ -33,9 +34,9 @@ router.get("/profile", tokenVerify, async (req, res) => {
     },
   });
   if (!user) {
-    return new ResponseObject(res, false, 400, "User not found");
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not found");
   }
-  return new ResponseObject(res, true, 200, "User infomation in body", {
+  return Responser(res, HttpStatusCode.OK, "User infomation in body", {
     user,
   });
 });
@@ -51,9 +52,14 @@ router.put(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return new ResponseObject(res, false, 400, "Input validation error", {
-        error: errors.array(),
-      });
+      return Responser(
+        res,
+        HttpStatusCode.BAD_REQUEST,
+        "Input validation error",
+        {
+          error: errors.array(),
+        }
+      );
     }
     const profile = await prisma.profile.findFirst({
       where: { id: req.profile.id },
@@ -61,7 +67,7 @@ router.put(
     });
 
     if (!profile) {
-      return new ResponseObject(res, false, 400, "User not found!");
+      return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not found!");
     }
 
     const email = req.body.email;
@@ -74,10 +80,10 @@ router.put(
       });
     } catch (_) {
       new Log().error("Update Email Failed");
-      return new ResponseObject(res, false, 400, "Update failed");
+      return Responser(res, HttpStatusCode.BAD_REQUEST, "Update failed");
     }
 
-    return new ResponseObject(res, true, 200, "Updated Successfully");
+    return Responser(res, HttpStatusCode.OK, "Updated Successfully");
   }
 );
 
@@ -94,7 +100,11 @@ router.put("/profile", tokenVerify, async (req, res) => {
   });
 
   if (!profile) {
-    return new ResponseObject(res, false, 400, "No Token or User'id error");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "No Token or User'id error"
+    );
   }
 
   const firstname = <string>req.body.firstname || profile.firstname;
@@ -112,10 +122,14 @@ router.put("/profile", tokenVerify, async (req, res) => {
     });
   } catch (_) {
     new Log().error("Update user infomation error");
-    return new ResponseObject(res, false, 400, "Update user infomation error");
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Update user infomation error"
+    );
   }
 
-  return new ResponseObject(res, true, 200, "Updated");
+  return Responser(res, HttpStatusCode.OK, "Updated");
 });
 
 /**
@@ -154,10 +168,10 @@ router.get("/search", tokenVerify, async (req, res) => {
   });
 
   if (!profiles) {
-    return new ResponseObject(res, false, 400, "User not found");
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not found");
   }
 
-  return new ResponseObject(res, true, 400, "Found!", { profiles });
+  return Responser(res, HttpStatusCode.OK, "Found!", { profiles });
 });
 
 export { router as userRouter };
