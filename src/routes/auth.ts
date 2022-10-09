@@ -118,15 +118,18 @@ router.post("/login", async (req, res) => {
   });
 
   if (!user) {
-    return new ResponseObject(res, false, 400, "User not found!");
+    return new ResponseObject(res, false, 401, "User not found!");
   }
 
   // ANCHOR 2 filter : Password validation
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Username or password not correct" });
+    return new ResponseObject(
+      res,
+      false,
+      401,
+      "Username or password not correct"
+    );
   }
   //ANCHOR Success sending JWT
   const accessToken: string = jwt.sign(
@@ -164,9 +167,8 @@ router.post("/login", async (req, res) => {
       profile: true,
     },
   });
-  return res.status(200).json({
-    success: true,
-    message: "Valid email & password.",
+
+  return new ResponseObject(res, true, 200, "Valid email & password.", {
     accessToken: accessToken,
     refreshToken: refreshToken,
   });
@@ -202,10 +204,12 @@ router.post("/token/access", async (req, res) => {
 router.post("/token/refresh", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return res.status(400).json({
-      success: false,
-      message: "Error : Missing Authorization Header provided!",
-    });
+    return new ResponseObject(
+      res,
+      false,
+      401,
+      "Error : Missing Authorization Header provided!"
+    );
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -263,10 +267,12 @@ router.post("/token/refresh", async (req, res) => {
 router.post("/token/logout", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return res.status(400).json({
-      success: false,
-      message: "Error : Missing Authorization Header provided!",
-    });
+    return new ResponseObject(
+      res,
+      false,
+      401,
+      "Error : Missing Authorization Header provided!"
+    );
   }
 
   const authHeader: string = req.headers["authorization"];
