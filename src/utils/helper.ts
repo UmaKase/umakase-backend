@@ -11,6 +11,7 @@ import {
   Profile,
   Room,
 } from "@prisma/client";
+import { Log } from "@utils/Log";
 import { RoomEvent } from "types/types";
 import { logg } from "../server";
 
@@ -25,6 +26,7 @@ type ProfileWithCreatedRoomAndFoodOnRoom = Profile & {
 const prisma = new PrismaClient({
   log: [],
 });
+const logger = new Log();
 
 /**
  * Get Profiles with usernames
@@ -97,12 +99,89 @@ const mergeFoodByRoommateIds = (
 };
 
 const addRoomMember = async (
-  _: string,
-  // roomId: string,
-  __: string[]
-  // newRoomies: string[]
+  roomId: string,
+  newRoomies: string[]
 ): Promise<[boolean, string, any?]> => {
-  return [true, ""];
+  let result = false;
+
+  const room = await prisma.room.findFirst({
+    where: { id: roomId },
+    include: {
+      user: {
+        select: {
+          profile: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!room) {
+    return [result, "Can't find room"];
+  }
+  const currentRoomMember = room.user.map((member) => {
+    return member.profile.username;
+  });
+
+  const roomies = await getUserProfiles([...newRoomies, ...currentRoomMember]);
+
+  const foods = mergeFoodByRoommateIds(roomies);
+
+  // clear old foods on room
+  // TODO: Back up ?
+  const deleteFoods = prisma.foodsOnRooms
+    .deleteMany({
+      where: {
+        roomId,
+      },
+    })
+    .catch((e) => {
+      logger.error("Adding Member to Room\n", e);
+    });
+  const deleteRoomies = prisma.profilesOnRooms
+    .deleteMany({
+      where: {
+        roomId,
+      },
+    })
+    .catch((e) => {
+      logger.error("Adding Member to Room\n", e);
+    });
+
+  await Promise.all([deleteFoods, deleteRoomies]);
+
+  const updated = await prisma.room
+    .update({
+      where: {
+        id: roomId,
+      },
+      data: {
+        foods: {
+          create: foods.map((id) => ({
+            food: {
+              connect: {
+                id,
+              },
+            },
+          })),
+        },
+        user: {
+          create: roomies.map((roomie) => ({
+            profile: {
+              connect: { username: roomie.username },
+            },
+          })),
+        },
+      },
+    })
+    .catch((e) => {
+      logger.error("AddRoomMember/Updating: ", e);
+    });
+
+  return [true, "", updated];
 };
 const removeRoomMember = async (
   _: string,
