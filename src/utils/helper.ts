@@ -66,7 +66,7 @@ const getUserProfiles = async (username: string[]) => {
 };
 
 /**
- * Get Food Mergered by User's Foods
+ * SECTION Get Food Mergered by User's Foods
  * TODO: Fix it to make it faster
  * @return Food Ids
  */
@@ -83,20 +83,25 @@ const mergeFoodByRoommateIds = (
     const thisFoodInArray = foodOnAllRoom.filter(
       (food) => food === foodOnAllRoom[index]
     );
+
     if (thisFoodInArray.length === roomies.length) {
       innerJoinFoodIds.push(foodOnAllRoom[index]);
+      // change current index food to random string so that it won't be duplicated
+      // TODO Find better way
+      foodOnAllRoom[index] = "_";
     }
 
-    // Clear this food in all food in room array
-    foodOnAllRoom = foodOnAllRoom.filter(
-      (food) => food !== foodOnAllRoom[index]
-    );
+    // FIXME Clear this food in all food in room array
+    // foodOnAllRoom = foodOnAllRoom.filter(
+    //   (food) => food !== foodOnAllRoom[index]
+    // );
 
     index++;
   }
 
   return innerJoinFoodIds;
 };
+// !SECTION
 
 const addRoomMember = async (
   roomId: string,
