@@ -4,6 +4,8 @@ import { Responser } from "@utils/ResponseController";
 import express from "express";
 import multerConfig from "@middleware/multerConfig";
 import HttpStatusCode from "@utils/httpStatus";
+import { DEFAULT_RANDOM_COUNT } from "@config/config";
+import { randomMultiple } from "@utils/_";
 const router = express.Router();
 
 /*
@@ -87,66 +89,102 @@ router.post("/db", async (req, res) => {
 
 // _POST Upload Images and Tag
 //  NOTE: This is a multipart/media request ("not json")
-router.post(
-  "/add",
-  tokenVerify,
-  multerConfig.single("image"),
-  async (req, res) => {
-    const { name, altName, country } = req.body;
-    const tagIds = req.body.tagIds || [];
+router.post("/add", tokenVerify, multerConfig.single("image"), async (req, res) => {
+  const { name, altName, country } = req.body;
+  const tagIds = req.body.tagIds || [];
 
-    // Check file and get filename for saving
-    const file = req.file;
-    if (!file) {
-      return Responser(res, HttpStatusCode.BAD_REQUEST, "Please upload a file");
-    }
-    const img = file.filename;
+  // Check file and get filename for saving
+  const file = req.file;
+  if (!file) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Please upload a file");
+  }
+  const img = file.filename;
 
-    // TODO: Create tag if not have
-    // createTags();
+  // TODO: Create tag if not have
+  // createTags();
 
-    const user = await prisma.profile.findFirst({
-      where: {
-        id: req.profile.id,
-      },
-    });
+  const user = await prisma.profile.findFirst({
+    where: {
+      id: req.profile.id,
+    },
+  });
 
-    if (!user) {
-      return Responser(
-        res,
-        HttpStatusCode.UNAUTHORIZED,
-        "User not authenticated"
-      );
-    }
+  if (!user) {
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not authenticated");
+  }
 
-    // Get Tags
-    const tags = await prisma.tag.findMany({
-      where: {
-        OR: tagIds.map((id: string) => ({
-          id,
-        })),
-      },
-    });
+  // Get Tags
+  const tags = await prisma.tag.findMany({
+    where: {
+      OR: tagIds.map((id: string) => ({
+        id,
+      })),
+    },
+  });
 
-    // Creating new food
-    const newFood = await prisma.food.create({
-      data: {
-        name,
-        altName: altName || "",
-        country: country || "jp",
-        img,
-        tags: {
-          createMany: {
-            data: tags.map((tag) => ({
-              tagId: tag.id,
-            })),
-          },
+  // Creating new food
+  const newFood = await prisma.food.create({
+    data: {
+      name,
+      altName: altName || "",
+      country: country || "jp",
+      img,
+      tags: {
+        createMany: {
+          data: tags.map((tag) => ({
+            tagId: tag.id,
+          })),
         },
       },
-    });
+    },
+  });
 
-    return Responser(res, HttpStatusCode.OK, "Created", { newFood });
+  return Responser(res, HttpStatusCode.OK, "Created", { newFood });
+});
+
+router.get("/random/:count", tokenVerify, async (req, res) => {
+  let count = Number(req.params.count) || DEFAULT_RANDOM_COUNT;
+
+  const profile = await prisma.profile.findFirst({
+    where: { id: req.profile.id },
+  });
+
+  // Validate user
+  if (!profile) {
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Unauthorized or profile invalid");
   }
-);
+
+  // Validate room and also get food
+  const room = await prisma.room.findFirst({
+    where: {
+      id: req.body.roomId,
+    },
+    select: {
+      foods: {
+        select: {
+          food: true,
+        },
+      },
+    },
+  });
+
+  if (!room) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Can't find room");
+  }
+
+  // take food and randomizing
+  const foods = room.foods.map((food) => {
+    return food.food;
+  });
+
+  if (foods.length < count) {
+    count = foods.length;
+  }
+  const randomIndex = randomMultiple(0, foods.length, count);
+
+  const randomizedFoods = randomIndex.map((index) => foods[index]);
+
+  return Responser(res, HttpStatusCode.OK, "Food randomized", { randomFoods: randomizedFoods });
+});
 
 export { router as foodRouter };

@@ -1,4 +1,4 @@
-import { helper } from "@helper";
+import { helper } from "@utils/roomHelper";
 import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "@middleware/token";
@@ -214,6 +214,12 @@ router.put("/update/:roomId", tokenVerify, async (req, res) => {
   }
 });
 
+/**
+ * @Body Event event
+ * @Body string roomId
+ * @Body string[] newRoomies - new roommate usernames if it is add-member event
+ * @Body string[] removeRoomies - remove roommate usernames if it is remove-member event
+ */
 router.post("/event", tokenVerify, async (req, res) => {
   const event = req.body.event;
   const roomId = req.body.roomId;

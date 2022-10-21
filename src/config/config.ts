@@ -7,3 +7,4 @@ export const accessTokenSecret =
 export const refreshTokenSecret =
   process.env.REFRESH_TOKEN_SECRET || "some other super secret";
 export const BSalt = 10;
+export const DEFAULT_RANDOM_COUNT = 3;
