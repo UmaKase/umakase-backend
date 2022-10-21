@@ -1,13 +1,12 @@
 /**
  *****************************************************||
- *----- Contain Various Helper Function --------------**
+ *----- Contain Room Helper Function --------------**
  *****************************************************||
  */
 
 import { Food, FoodsOnRooms, PrismaClient, Profile, Room } from "@prisma/client";
 import { Log } from "@utils/Log";
 import { RoomEvent } from "types/types";
-import { logg } from "../server";
 
 type ProfileWithCreatedRoomAndFoodOnRoom = Profile & {
   createdRoom: (Room & {
@@ -21,6 +20,50 @@ const prisma = new PrismaClient({
   log: [],
 });
 const logger = new Log();
+
+const createDefaultRoom = async (username: string, foodIds: string[] = []) => {
+  const userProfile = await roomHelper.getUserProfiles([username]);
+  return prisma.room.create({
+    data: {
+      name: "__default",
+      creator: {
+        connect: {
+          id: userProfile[0].id,
+        },
+      },
+      foods: {
+        create: foodIds.map((id) => ({
+          food: {
+            connect: {
+              id,
+            },
+          },
+        })),
+      },
+      user: {
+        create: {
+          profileId: userProfile[0].id,
+        },
+      },
+    },
+    include: {
+      foods: {
+        select: {
+          foodId: false,
+          roomId: false,
+          food: true,
+        },
+      },
+      user: {
+        select: {
+          profileId: false,
+          roomId: false,
+          profile: true,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Get Profiles with usernames
@@ -53,7 +96,7 @@ const getUserProfiles = async (username: string[]) => {
       },
     });
   } catch (_) {
-    logg.error("Fetch Profile Error in function getUserProfles");
+    logger.error("Fetch Profile Error in function getUserProfles");
     return [];
   }
   return profiles;
@@ -188,11 +231,12 @@ function isRoomEvent(event: string): event is RoomEvent {
   return roomEvents.includes(event);
 }
 
-export const helper = {
+export const roomHelper = {
   getUserProfiles,
   mergeFoodByRoommateIds,
   addRoomMember,
   removeRoomMember,
   updateRommFood,
   isRoomEvent,
+  createDefaultRoom,
 };

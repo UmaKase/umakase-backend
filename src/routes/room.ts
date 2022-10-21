@@ -1,4 +1,4 @@
-import { helper } from "@utils/roomHelper";
+import { roomHelper } from "@utils/roomHelper";
 import { PrismaClient, Profile, Room } from "@prisma/client";
 import express from "express";
 import { tokenVerify } from "@middleware/token";
@@ -43,11 +43,7 @@ router.get("/", tokenVerify, async (req, res) => {
   });
 
   if (!userProfile) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Authorization Error | User Id Problem"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Authorization Error | User Id Problem");
   }
 
   return Responser(res, HttpStatusCode.OK, "Found room", {
@@ -107,29 +103,21 @@ router.post("/new", tokenVerify, async (req, res) => {
   });
 
   if (!creator) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "User Not Found! or Authentication error"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User Not Found! or Authentication error");
   }
 
   if (creator.createdRoom.length > 2) {
     // TODO Check if User is Premium user?
     // -------------------
     // Normal user can only able to create two room
-    return Responser(
-      res,
-      HttpStatusCode.FORBIDDEN,
-      "You can only create one room"
-    );
+    return Responser(res, HttpStatusCode.FORBIDDEN, "You can only create one room");
   }
 
-  const roomies = await helper.getUserProfiles(roomieNames);
+  const roomies = await roomHelper.getUserProfiles(roomieNames);
 
   let foodToAdd: string[] = foodIds;
   if (!isDefaultRoom) {
-    foodToAdd = helper.mergeFoodByRoommateIds(roomies);
+    foodToAdd = roomHelper.mergeFoodByRoommateIds(roomies);
   }
 
   const newRoom = await prisma.room.create({
@@ -206,11 +194,7 @@ router.put("/update/:roomId", tokenVerify, async (req, res) => {
     return Responser(res, HttpStatusCode.OK, "Room updated");
   } catch (error) {
     log.error(error);
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Room not found or already deleted"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Room not found or already deleted");
   }
 });
 
@@ -224,12 +208,8 @@ router.post("/event", tokenVerify, async (req, res) => {
   const event = req.body.event;
   const roomId = req.body.roomId;
 
-  if (!helper.isRoomEvent(event)) {
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "No Event or Invalid Room Event"
-    );
+  if (!roomHelper.isRoomEvent(event)) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "No Event or Invalid Room Event");
   }
 
   const room = await prisma.room.findFirst({
@@ -254,52 +234,27 @@ router.post("/event", tokenVerify, async (req, res) => {
       if (!newRoomies) {
         break;
       }
-      [result, error, data] = await helper.addRoomMember(roomId, newRoomies);
+      [result, error, data] = await roomHelper.addRoomMember(roomId, newRoomies);
 
-      return Responser(
-        res,
-        result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST,
-        error,
-        data
-      );
+      return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
     case "remove-member":
       const removeRoomies = req.body.removeRoomies;
       if (!removeRoomies) {
         break;
       }
-      [result, error, data] = await helper.removeRoomMember(
-        roomId,
-        removeRoomies
-      );
+      [result, error, data] = await roomHelper.removeRoomMember(roomId, removeRoomies);
 
-      return Responser(
-        res,
-        result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST,
-        error,
-        data
-      );
+      return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
     case "update-food":
       break;
 
     default:
       // code not expected to goes here
-      return Responser(
-        res,
-        HttpStatusCode.BAD_REQUEST,
-        "No Event or Invalid Room Event"
-      );
+      return Responser(res, HttpStatusCode.BAD_REQUEST, "No Event or Invalid Room Event");
   }
 
-  log.error(
-    `\n\tRoom Event: ${event} | Payload: ${JSON.stringify(req.body)}`,
-    `Error: ${error}`,
-    data
-  );
-  return Responser(
-    res,
-    HttpStatusCode.BAD_REQUEST,
-    "Input not enough, please report to admin"
-  );
+  log.error(`\n\tRoom Event: ${event} | Payload: ${JSON.stringify(req.body)}`, `Error: ${error}`, data);
+  return Responser(res, HttpStatusCode.BAD_REQUEST, "Input not enough, please report to admin");
 });
 
 export { router as roomRouter };
