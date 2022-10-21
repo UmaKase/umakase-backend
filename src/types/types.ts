@@ -9,4 +9,10 @@ declare global {
   }
 }
 
+/**
+ * Events
+ * - add-member
+ * - remove-member
+ * - update-food - when food is not update correctly and user try to reload. send this event
+ */
 export type RoomEvent = "add-member" | "remove-member" | "update-food";
