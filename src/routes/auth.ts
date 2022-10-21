@@ -1,18 +1,13 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
-import {
-  accessTokenSecret,
-  accessToken_Exp,
-  BSalt,
-  refreshTokenSecret,
-  refreshToken_Exp,
-} from "@config/config";
+import { accessTokenSecret, accessToken_Exp, BSalt, refreshTokenSecret, refreshToken_Exp } from "@config/config";
 import jwt from "jsonwebtoken";
 import { PrismaClient, Profile, User } from "@prisma/client";
 import { createTempUser } from "@utils/tmpUser";
 import { Responser } from "@utils/ResponseController";
 import { jwtDecode, jwtVerify } from "@utils/jwtController";
+import { roomHelper } from "@roomHelper";
 import HttpStatusCode from "@utils/httpStatus";
 
 const dbclient = new PrismaClient();
@@ -26,22 +21,20 @@ router.post(
   // NOTE even if creating a tmp account. YOU STILL NEED TO SEND EMAIL
   // just send random thing, server will ignore it
   body("email").isEmail().withMessage("Email is not valid"),
-  body("username")
-    .isLength({ min: 5, max: undefined })
-    .withMessage("Username must be at least 5 characters long"),
-  body("password")
-    .isLength({ min: 5 })
-    .withMessage("Password must have at least 5 characters"),
+  body("username").isLength({ min: 5, max: undefined }).withMessage("Username must be at least 5 characters long"),
+  body("password").isLength({ min: 5 }).withMessage("Password must have at least 5 characters"),
   async (req, res) => {
-    const { email, username, password, firstname, lastname, isTemp } = req.body;
+    const { email, username, password, firstname, lastname, isTemp, foodIds } = req.body;
 
     // Create a temp user and send its id and password to client
     if (isTemp) {
       const { tmpId, tmpPass } = await createTempUser();
       if (tmpId) {
+        const defaultRoom = await roomHelper.createDefaultRoom(tmpId, foodIds || []);
         return Responser(res, HttpStatusCode.OK, "created", {
           tmpId,
           tmpPass,
+          defaultRoom,
         });
       }
     }
@@ -49,14 +42,9 @@ router.post(
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return Responser(
-        res,
-        HttpStatusCode.BAD_REQUEST,
-        "Input validation error",
-        {
-          error: errors.array(),
-        }
-      );
+      return Responser(res, HttpStatusCode.BAD_REQUEST, "Input validation error", {
+        error: errors.array(),
+      });
     }
 
     // ANCHOR Check If Email or Username Existed
@@ -76,11 +64,7 @@ router.post(
     });
 
     if (users.length > 0) {
-      return Responser(
-        res,
-        HttpStatusCode.BAD_REQUEST,
-        "Email or Username already in use"
-      );
+      return Responser(res, HttpStatusCode.BAD_REQUEST, "Email or Username already in use");
     }
 
     // ANCHOR Start inserting data
@@ -129,27 +113,15 @@ router.post("/login", async (req, res) => {
   // ANCHOR 2 filter : Password validation
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Username or password not correct"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Username or password not correct");
   }
   //ANCHOR Success sending JWT
-  const accessToken: string = jwt.sign(
-    { id: user.profile?.id },
-    accessTokenSecret!,
-    {
-      expiresIn: accessToken_Exp,
-    }
-  );
-  const refreshToken: string = jwt.sign(
-    { id: user.profile?.id },
-    refreshTokenSecret!,
-    {
-      expiresIn: refreshToken_Exp,
-    }
-  );
+  const accessToken: string = jwt.sign({ id: user.profile?.id }, accessTokenSecret!, {
+    expiresIn: accessToken_Exp,
+  });
+  const refreshToken: string = jwt.sign({ id: user.profile?.id }, refreshTokenSecret!, {
+    expiresIn: refreshToken_Exp,
+  });
   let newRefreshToken: string[];
   //process refreshToken saving
   if (!user.refreshToken) {
@@ -183,11 +155,7 @@ router.post("/login", async (req, res) => {
 router.post("/token/access", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Auth header not provided"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Auth header not provided");
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -197,11 +165,7 @@ router.post("/token/access", async (req, res) => {
 
   //check is the authMethod & accessToken exist and the is method correct
   if (!authMethod || !accessToken || authMethod !== "Bearer") {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Auth method is invalid"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Auth method is invalid");
   }
 
   const token = jwtVerify<AccessToken>(accessToken, accessTokenSecret);
@@ -216,11 +180,7 @@ router.post("/token/access", async (req, res) => {
 router.post("/token/refresh", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Error : Missing Authorization Header provided!"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Error : Missing Authorization Header provided!");
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -234,10 +194,7 @@ router.post("/token/refresh", async (req, res) => {
   }
 
   //verify refreshToken
-  const refreshTokenPayloads = jwtVerify<RefreshToken>(
-    refreshToken,
-    refreshTokenSecret
-  );
+  const refreshTokenPayloads = jwtVerify<RefreshToken>(refreshToken, refreshTokenSecret);
   if (!refreshTokenPayloads) {
     return Responser(res, HttpStatusCode.UNAUTHORIZED, "Token is invalid");
   }
@@ -253,27 +210,16 @@ router.post("/token/refresh", async (req, res) => {
     return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not existed");
   }
   //check if the refresh token is in the database refresh token string array
-  const refreshTokenList = JSON.parse(
-    refreshTokenCheck.refreshToken || "[]"
-  ) as string[];
+  const refreshTokenList = JSON.parse(refreshTokenCheck.refreshToken || "[]") as string[];
   if (!refreshTokenList.includes(refreshToken)) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Token is not in the list"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Token is not in the list");
   }
   //the refresh token is valid so create and return a new access token
   const userInfo = { id: refreshTokenPayloads.id };
   const newAccessToken = jwt.sign(userInfo, accessTokenSecret!, {
     expiresIn: accessToken_Exp,
   });
-  return Responser(
-    res,
-    HttpStatusCode.OK,
-    "Refresh token valid, new access token in reps",
-    { newAccessToken }
-  );
+  return Responser(res, HttpStatusCode.OK, "Refresh token valid, new access token in reps", { newAccessToken });
 });
 // !SECTION
 
@@ -281,11 +227,7 @@ router.post("/token/refresh", async (req, res) => {
 router.post("/token/logout", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Error : Missing Authorization Header provided!"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Error : Missing Authorization Header provided!");
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -302,11 +244,7 @@ router.post("/token/logout", async (req, res) => {
   const refreshTokenPayloads = jwtDecode<RefreshToken>(refreshToken);
 
   if (!refreshTokenPayloads) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Refresh Token not valid"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Refresh Token not valid");
   }
   const user = await dbclient.user.findFirst({
     where: {
@@ -317,21 +255,13 @@ router.post("/token/logout", async (req, res) => {
   });
   //if no user
   if (!user) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Error : User not exist!"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Error : User not exist!");
   }
   //check is the token in the list or not
   let refreshTokenList = JSON.parse(user.refreshToken || "[]") as string[];
   //not in the list
   if (!refreshTokenList.includes(refreshToken)) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Refresh token is not valid"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Refresh token is not valid");
   }
   //in the list
   refreshTokenList = refreshTokenList.filter((token) => token != refreshToken);

@@ -28,7 +28,7 @@
     "resolveJsonModule": true,
     "baseUrl": "./src",
     "paths": {
-      "@helper": [
+      "@roomHelper": [
         "utils/roomHelper.ts",
       ],
       "@middleware/*": [
