@@ -30,7 +30,7 @@ router.post(
     if (isTemp) {
       const { tmpId, tmpPass } = await createTempUser();
       if (tmpId) {
-        const defaultRoom = await roomHelper.createDefaultRoom(tmpId, foodIds || []);
+        const defaultRoom = await roomHelper.createDefaultRoom(tmpId, foodIds);
         return Responser(res, HttpStatusCode.OK, "created", {
           tmpId,
           tmpPass,
@@ -84,7 +84,16 @@ router.post(
       },
     });
 
-    return Responser(res, HttpStatusCode.OK, "success");
+    // TODO Merge user if user was tmpUser
+    // if (wasTempUser) {
+    //    userHelper.mergeTempUser()
+    // }
+
+    const defaultRoom = await roomHelper.createDefaultRoom(username, foodIds);
+
+    return Responser(res, HttpStatusCode.OK, "success", {
+      defaultRoom,
+    });
   }
 );
 // !SECTION

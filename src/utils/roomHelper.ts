@@ -21,7 +21,7 @@ const prisma = new PrismaClient({
 });
 const logger = new Log();
 
-const createDefaultRoom = async (username: string, foodIds: string[]) => {
+const createDefaultRoom = async (username: string, foodIds: string[] = []) => {
   const userProfile = await roomHelper.getUserProfiles([username]);
   return prisma.room.create({
     data: {
