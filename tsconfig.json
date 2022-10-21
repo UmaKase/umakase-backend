@@ -29,7 +29,7 @@
     "baseUrl": "./src",
     "paths": {
       "@helper": [
-        "utils/helper.ts",
+        "utils/roomHelper.ts",
       ],
       "@middleware/*": [
         "./middleware/*"

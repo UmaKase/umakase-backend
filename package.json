@@ -11,7 +11,7 @@
   },
   "_moduleAliases": {
     "@middleware": "dist/middleware",
-    "@helper": "dist/utils/helper.js",
+    "@helper": "dist/utils/roomHelper.js",
     "@utils": "dist/utils",
     "@config": "dist/config"
   },

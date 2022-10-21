@@ -4,13 +4,7 @@
  *****************************************************||
  */
 
-import {
-  Food,
-  FoodsOnRooms,
-  PrismaClient,
-  Profile,
-  Room,
-} from "@prisma/client";
+import { Food, FoodsOnRooms, PrismaClient, Profile, Room } from "@prisma/client";
 import { Log } from "@utils/Log";
 import { RoomEvent } from "types/types";
 import { logg } from "../server";
@@ -70,19 +64,13 @@ const getUserProfiles = async (username: string[]) => {
  * TODO: Fix it to make it faster
  * @return Food Ids
  */
-const mergeFoodByRoommateIds = (
-  roomies: ProfileWithCreatedRoomAndFoodOnRoom[]
-): string[] => {
+const mergeFoodByRoommateIds = (roomies: ProfileWithCreatedRoomAndFoodOnRoom[]): string[] => {
   const innerJoinFoodIds: string[] = [];
-  let foodOnAllRoom: string[] = roomies.flatMap((roomate) =>
-    roomate.createdRoom[0].foods.map((f) => f.food.id)
-  );
+  let foodOnAllRoom: string[] = roomies.flatMap((roomate) => roomate.createdRoom[0].foods.map((f) => f.food.id));
   // Count times of 1 food inside the whole array.
   let index = 0;
   while (index < foodOnAllRoom.length) {
-    const thisFoodInArray = foodOnAllRoom.filter(
-      (food) => food === foodOnAllRoom[index]
-    );
+    const thisFoodInArray = foodOnAllRoom.filter((food) => food === foodOnAllRoom[index]);
 
     if (thisFoodInArray.length === roomies.length) {
       innerJoinFoodIds.push(foodOnAllRoom[index]);
@@ -103,10 +91,7 @@ const mergeFoodByRoommateIds = (
 };
 // !SECTION
 
-const addRoomMember = async (
-  roomId: string,
-  newRoomies: string[]
-): Promise<[boolean, string, any?]> => {
+const addRoomMember = async (roomId: string, newRoomies: string[]): Promise<[boolean, string, any?]> => {
   let result = false;
 
   const room = await prisma.room.findFirst({

@@ -85,11 +85,10 @@ model Room {
 
 // RELATION Foods On Room || Many - Many
 model FoodsOnRooms {
-  roomId   String
-  foodId   String
-  room     Room     @relation(fields: [roomId], references: [id])
-  food     Food     @relation(fields: [foodId], references: [id])
-  joinedAt DateTime @default(now())
+  roomId String
+  foodId String
+  room   Room   @relation(fields: [roomId], references: [id])
+  food   Food   @relation(fields: [foodId], references: [id])
 
   @@id([roomId, foodId])
   @@index([foodId], map: "FoodsOnRooms_foodId_fkey")
