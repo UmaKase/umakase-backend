@@ -14,7 +14,7 @@ const router = express.Router();
  ************************************
  */
 
-const prisma = new PrismaClient({});
+const prisma = new PrismaClient({ log: [] });
 
 /**
   _POST Get Foods From *Big Database* With Name or Tags Name ( in Query)
@@ -142,8 +142,13 @@ router.post("/add", tokenVerify, multerConfig.single("image"), async (req, res) 
   return Responser(res, HttpStatusCode.OK, "Created", { newFood });
 });
 
-router.get("/random/:count", tokenVerify, async (req, res) => {
-  let count = Number(req.params.count) || DEFAULT_RANDOM_COUNT;
+/**
+ * _GET Random food on room
+ * @Query number count
+ * @Body  string roomId
+ */
+router.get("/random/:roomId", tokenVerify, async (req, res) => {
+  let count = Number(req.query.count) || DEFAULT_RANDOM_COUNT;
 
   const profile = await prisma.profile.findFirst({
     where: { id: req.profile.id },
@@ -157,11 +162,11 @@ router.get("/random/:count", tokenVerify, async (req, res) => {
   // Validate room and also get food
   const room = await prisma.room.findFirst({
     where: {
-      id: req.body.roomId,
+      id: req.params.roomId,
     },
-    select: {
+    include: {
       foods: {
-        select: {
+        include: {
           food: true,
         },
       },
@@ -184,7 +189,10 @@ router.get("/random/:count", tokenVerify, async (req, res) => {
 
   const randomizedFoods = randomIndex.map((index) => foods[index]);
 
-  return Responser(res, HttpStatusCode.OK, "Food randomized", { randomFoods: randomizedFoods });
+  return Responser(res, HttpStatusCode.OK, "Food randomized", {
+    randomFoods: randomizedFoods,
+    randomIndex,
+  });
 });
 
 export { router as foodRouter };

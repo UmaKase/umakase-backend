@@ -8,7 +8,7 @@ export const randomInt = (min: number, max: number, excludes?: number[]) => {
     logger.error("Random function error: ", { min, max, excludes });
     return randomInt(min, max, []);
   }
-  const random = Math.floor(Math.random() * (max - min + 1)) + min;
+  const random = Math.floor(Math.random() * (max - min)) + min;
   if (excludes) {
     if (excludes.includes(random)) {
       return randomInt(min, max, excludes);
