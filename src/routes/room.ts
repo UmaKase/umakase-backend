@@ -87,24 +87,27 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
  */
 router.post("/new", tokenVerify, async (req, res) => {
   const name: string = req.body.name;
-  const roomieNames: string[] = req.body.roomies || []; // NOTE **INCLUDED** create user's username.
+  let roomieNames: string[] = req.body.roomies || []; // NOTE ** Not INCLUDED** create user's username.
   const foodIds: string[] = req.body.foodIds;
   const isDefaultRoom: boolean = req.body.isDefaultRoom || false;
 
   const creator:
     | (Profile & {
-        createdRoom: Room[];
-      })
+      createdRoom: Room[];
+    })
     | null = await prisma.profile.findFirst({
-    where: { id: req.profile.id },
-    include: {
-      createdRoom: true,
-    },
-  });
+      where: { id: req.profile.id },
+      include: {
+        createdRoom: true,
+      },
+    });
+
 
   if (!creator) {
     return Responser(res, HttpStatusCode.UNAUTHORIZED, "User Not Found! or Authentication error");
   }
+
+  roomieNames.push(creator.username)
 
   if (creator.createdRoom.length > 2) {
     // TODO Check if User is Premium user?
