@@ -39,39 +39,39 @@ router.post("/db", async (req, res) => {
 
   const whereClause = name
     ? {
-        name: {
-          contains: name as string,
-        },
-      }
+      name: {
+        contains: name as string,
+      },
+    }
     : {
-        tags: {
-          some: {
-            OR: [
-              tagName
-                ? {
-                    tag: {
-                      name: { contains: tagName as string },
-                    },
-                  }
-                : {},
-              {
+      tags: {
+        some: {
+          OR: [
+            tagName
+              ? {
                 tag: {
-                  id: {
-                    in: tagIds,
-                  },
+                  name: { contains: tagName as string },
+                },
+              }
+              : {},
+            {
+              tag: {
+                id: {
+                  in: tagIds,
                 },
               },
-            ],
-          },
-          every: {
-            tag: {
-              id: {
-                notIn: excludeTags,
-              },
+            },
+          ],
+        },
+        every: {
+          tag: {
+            id: {
+              notIn: excludeTags,
             },
           },
         },
-      };
+      },
+    };
 
   const foods: (Food & { tags: TagsOnFoods[] })[] = await prisma.food.findMany({
     where: { ...whereClause, id: { notIn: excludeFoods } },
@@ -87,8 +87,12 @@ router.post("/db", async (req, res) => {
   });
 });
 
-// _POST Upload Images and Tag
-//  NOTE: This is a multipart/media request ("not json")
+/**
+ * _POST Create new food
+ * TODO: This will create new food in the food table. create other one instead.
+ * NOTE: This is a multipart/media request ("not json")
+ *
+ */
 router.post("/add", tokenVerify, multerConfig.single("image"), async (req, res) => {
   const { name, altName, country } = req.body;
   const tagIds = req.body.tagIds || [];
