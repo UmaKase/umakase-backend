@@ -61,8 +61,8 @@ export const checkLogin = async (
     },
   });
 
-  if (!user) {
-    return [undefined, HttpStatusCode.BAD_REQUEST, "User not found!"];
+  if (!user || !user.profile) {
+    return [undefined, HttpStatusCode.BAD_REQUEST, "User not found or Profile problem"];
   }
 
   // ANCHOR 2 filter : Password validation
