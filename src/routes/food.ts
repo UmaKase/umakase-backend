@@ -1,5 +1,5 @@
 import { tokenVerify } from "@middleware/token";
-import { Food, PrismaClient, TagsOnFoods } from "@prisma/client";
+import { Food, PrismaClient, Profile, Room, TagsOnFoods } from "@prisma/client";
 import { Responser } from "@utils/ResponseController";
 import express from "express";
 import multerConfig from "@middleware/multerConfig";
@@ -15,6 +15,57 @@ const router = express.Router();
  */
 
 const prisma = new PrismaClient({ log: [] });
+
+router.get("/default", tokenVerify, async (req, res) => {
+  const profileId = req.profile.id;
+
+  type ProfileWithCreatedRoom =
+    | (Profile & {
+        createdRoom: (Room & {
+          foods: {
+            food: Food;
+          }[];
+        })[];
+      })
+    | null;
+
+  const profile: ProfileWithCreatedRoom = await prisma.profile.findFirst({
+    where: {
+      id: profileId,
+    },
+    include: {
+      createdRoom: {
+        take: 1,
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          foods: {
+            select: {
+              food: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!profile) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Cannot find user");
+  }
+
+  if (profile.createdRoom.length === 0) {
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "No default room. Contact developer to fix"
+    );
+  }
+
+  return Responser(res, HttpStatusCode.OK, "Success. Food returns in response", {
+    foods: profile.createdRoom[0].foods,
+  });
+});
 
 /**
   _POST Get Foods From *Big Database* With Name or Tags Name ( in Query)
@@ -39,39 +90,39 @@ router.post("/db", async (req, res) => {
 
   const whereClause = name
     ? {
-      name: {
-        contains: name as string,
-      },
-    }
+        name: {
+          contains: name as string,
+        },
+      }
     : {
-      tags: {
-        some: {
-          OR: [
-            tagName
-              ? {
+        tags: {
+          some: {
+            OR: [
+              tagName
+                ? {
+                    tag: {
+                      name: { contains: tagName as string },
+                    },
+                  }
+                : {},
+              {
                 tag: {
-                  name: { contains: tagName as string },
-                },
-              }
-              : {},
-            {
-              tag: {
-                id: {
-                  in: tagIds,
+                  id: {
+                    in: tagIds,
+                  },
                 },
               },
-            },
-          ],
-        },
-        every: {
-          tag: {
-            id: {
-              notIn: excludeTags,
+            ],
+          },
+          every: {
+            tag: {
+              id: {
+                notIn: excludeTags,
+              },
             },
           },
         },
-      },
-    };
+      };
 
   const foods: (Food & { tags: TagsOnFoods[] })[] = await prisma.food.findMany({
     where: { ...whereClause, id: { notIn: excludeFoods } },
