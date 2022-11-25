@@ -1,6 +1,16 @@
+import { PrismaClient, Profile, User } from "@prisma/client";
+import bcrypt from "bcrypt";
+import HttpStatusCode from "@utils/httpStatus";
 import { Log } from "@utils/Log";
 
 const logger = new Log();
+const prisma = new PrismaClient();
+
+type UserWithProfile =
+  | (User & {
+      profile: Profile | null;
+    })
+  | null;
 
 // Random integer number generator
 export const randomInt = (min: number, max: number, excludes?: number[]) => {
@@ -28,4 +38,38 @@ export const randomMultiple = (min: number, max: number, times: number): number[
     result.push(randomInt(min, max));
   }
   return result;
+};
+
+/**
+ * ユーザー認証
+ * @param username
+ * @param password
+ * @returns [isValidUser, HTTPStatusCode, MessageOrError]
+ */
+export const checkLogin = async (
+  username: string,
+  password: string
+): Promise<[UserWithProfile | undefined, HttpStatusCode, string]> => {
+  //ANCHOR Check If User Existed
+  // TODO user more than only username
+  const user: UserWithProfile = await prisma.user.findFirst({
+    where: {
+      profile: { username },
+    },
+    include: {
+      profile: true,
+    },
+  });
+
+  if (!user) {
+    return [undefined, HttpStatusCode.BAD_REQUEST, "User not found!"];
+  }
+
+  // ANCHOR 2 filter : Password validation
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) {
+    return [undefined, HttpStatusCode.BAD_REQUEST, "Username or password not correct"];
+  }
+
+  return [user, HttpStatusCode.OK, "Success"];
 };
