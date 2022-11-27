@@ -4,13 +4,7 @@
  *****************************************************||
  */
 
-import {
-  Food,
-  FoodsOnRooms,
-  PrismaClient,
-  Profile,
-  Room,
-} from "@prisma/client";
+import { Food, FoodsOnRooms, PrismaClient, Profile, Room } from "@prisma/client";
 import { Log } from "@utils/Log";
 import { RoomEvent } from "types/types";
 
@@ -27,10 +21,7 @@ const prisma = new PrismaClient({
 });
 const logger = new Log();
 
-const createDefaultRoom = async (
-  username: string,
-  foodIds: string[] = []
-) => {
+const createDefaultRoom = async (username: string, foodIds: string[] = []) => {
   const userProfile = await roomHelper.getUserProfiles([username]);
   return prisma.room.create({
     data: {
@@ -75,7 +66,7 @@ const createDefaultRoom = async (
 };
 
 /**
- * Get Profiles with usernames
+ * ANCHOR Get Profiles with usernames
  * @return User's Profiles
  */
 const getUserProfiles = async (username: string[]) => {
@@ -126,9 +117,7 @@ const mergeFoodByRoommateIds = (
   // Count times of 1 food inside the whole array.
   let index = 0;
   while (index < foodOnAllRoom.length) {
-    const thisFoodInArray = foodOnAllRoom.filter(
-      (food) => food === foodOnAllRoom[index]
-    );
+    const thisFoodInArray = foodOnAllRoom.filter((food) => food === foodOnAllRoom[index]);
 
     if (thisFoodInArray.length === roomies.length) {
       innerJoinFoodIds.push(foodOnAllRoom[index]);
@@ -177,10 +166,7 @@ const addRoomMember = async (
     return member.profile.username;
   });
 
-  const roomies = await getUserProfiles([
-    ...newRoomies,
-    ...currentRoomMember,
-  ]);
+  const roomies = await getUserProfiles([...newRoomies, ...currentRoomMember]);
 
   const foods = mergeFoodByRoommateIds(roomies);
 
