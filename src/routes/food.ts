@@ -1,5 +1,5 @@
 import { tokenVerify } from "@middleware/token";
-import { Food, PrismaClient, Profile, TagsOnFoods } from "@prisma/client";
+import { Food, PrismaClient, Profile, Tag, TagsOnFoods } from "@prisma/client";
 import { Responser } from "@utils/ResponseController";
 import express from "express";
 import multerConfig from "@middleware/multerConfig";
@@ -25,9 +25,12 @@ router.get("/default", tokenVerify, async (req, res) => {
   type ProfileWithCreatedRoom =
     | (Profile & {
         createdRoom: {
-          id: string;
           foods: {
-            food: Food;
+            food: Food & {
+              tags: {
+                tag: Tag;
+              }[];
+            };
             isFavorite: boolean;
           }[];
         }[];
@@ -45,10 +48,17 @@ router.get("/default", tokenVerify, async (req, res) => {
           createdAt: "asc",
         },
         select: {
-          id: true,
           foods: {
             select: {
-              food: true,
+              food: {
+                include: {
+                  tags: {
+                    select: {
+                      tag: true,
+                    },
+                  },
+                },
+              },
               isFavorite: true,
             },
           },
@@ -61,6 +71,10 @@ router.get("/default", tokenVerify, async (req, res) => {
     return Responser(res, HttpStatusCode.BAD_REQUEST, "Cannot find user");
   }
 
+  const tags = profile.createdRoom[0].foods.map((food) => {
+    return food.food.tags.map((tag) => tag.tag.name);
+  });
+
   if (profile.createdRoom.length === 0) {
     return Responser(
       res,
@@ -71,7 +85,7 @@ router.get("/default", tokenVerify, async (req, res) => {
 
   return Responser(res, HttpStatusCode.OK, "Success. Food returns in response", {
     foods: profile.createdRoom[0].foods,
-    roomId: profile.createdRoom[0].id,
+    tags: [...new Set(tags.flatMap((tagName) => tagName))],
   });
 });
 
