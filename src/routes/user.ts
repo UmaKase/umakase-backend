@@ -165,6 +165,7 @@ router.get("/search", tokenVerify, async (req, res) => {
 /**
  * @body string tmpId - tmp user's id
  * @body string tmpPass - tmp user's password
+ * FIXME Make the room 1st room
  * Both infomation is stored in SecureStore when user register new tmpUser
  */
 router.post("/tmp/merge", tokenVerify, async (req, res) => {
@@ -178,7 +179,7 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     return Responser(
       res,
       HttpStatusCode.UNAUTHORIZED,
-      "New user is not craeted correctly, please contact developer"
+      "New user is not created correctly, please contact developer"
     );
   }
   const tmpId = req.body.tmpId;
@@ -198,6 +199,7 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
       },
     },
     orderBy: {
+      // FIXME Check again
       createdAt: "desc",
     },
   });
@@ -220,6 +222,7 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
         },
       },
     });
+
     return Responser(res, HttpStatusCode.OK, "User Merged");
   } catch (error) {
     // TODO: Fix Error Code
