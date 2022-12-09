@@ -1,5 +1,5 @@
 import { tokenVerify } from "@middleware/token";
-import { Food, PrismaClient, Profile, Room, TagsOnFoods } from "@prisma/client";
+import { Food, PrismaClient, Profile, TagsOnFoods } from "@prisma/client";
 import { Responser } from "@utils/ResponseController";
 import express from "express";
 import multerConfig from "@middleware/multerConfig";
@@ -16,16 +16,21 @@ const router = express.Router();
 
 const prisma = new PrismaClient({ log: [] });
 
+/**
+ * _GET Default Room's default's food
+ */
 router.get("/default", tokenVerify, async (req, res) => {
   const profileId = req.profile.id;
 
   type ProfileWithCreatedRoom =
     | (Profile & {
-        createdRoom: (Room & {
+        createdRoom: {
+          id: string;
           foods: {
             food: Food;
+            isFavorite: boolean;
           }[];
-        })[];
+        }[];
       })
     | null;
 
@@ -37,12 +42,14 @@ router.get("/default", tokenVerify, async (req, res) => {
       createdRoom: {
         take: 1,
         orderBy: {
-          createdAt: "desc",
+          createdAt: "asc",
         },
-        include: {
+        select: {
+          id: true,
           foods: {
             select: {
               food: true,
+              isFavorite: true,
             },
           },
         },
@@ -64,6 +71,7 @@ router.get("/default", tokenVerify, async (req, res) => {
 
   return Responser(res, HttpStatusCode.OK, "Success. Food returns in response", {
     foods: profile.createdRoom[0].foods,
+    roomId: profile.createdRoom[0].id,
   });
 });
 
@@ -248,6 +256,78 @@ router.get("/random/:roomId", tokenVerify, async (req, res) => {
     randomFoods: randomizedFoods,
     randomIndex,
   });
+});
+
+/**
+ * Toggle is Favorite food
+ * @param string foodId
+ */
+router.post("/favorite", tokenVerify, async (req, res) => {
+  // Check Profile
+  const profile = await prisma.profile.findFirst({
+    where: {
+      id: req.profile.id,
+    },
+    include: {
+      room: {
+        select: {
+          room: {
+            include: { foods: true },
+          },
+        },
+        take: 1,
+        orderBy: {
+          joinedAt: "asc",
+        },
+      },
+    },
+  });
+  if (!profile) {
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Can't not find user with provided auth"
+    );
+  }
+
+  if (profile.room.length <= 0) {
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Cannot find default room. Contact developer for more infomation"
+    );
+  }
+  // Check if the food is in room
+  const foodInRoom = profile.room[0].room.foods.find(
+    (food) => food.foodId === req.body.foodId
+  );
+  if (!foodInRoom) {
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "You do not have that food in your library"
+    );
+  }
+
+  // Found food. Toggle favorite food
+  try {
+    const result = await prisma.foodsOnRooms.update({
+      where: {
+        roomId_foodId: {
+          foodId: foodInRoom.foodId,
+          roomId: foodInRoom.roomId,
+        },
+      },
+      data: {
+        isFavorite: !foodInRoom.isFavorite,
+      },
+    });
+    console.log(result);
+  } catch (error) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Unexpected Error.");
+  }
+
+  return Responser(res, HttpStatusCode.OK, "Updated");
 });
 
 export { router as foodRouter };
