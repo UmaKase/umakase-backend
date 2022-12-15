@@ -16,6 +16,7 @@ import { jwtDecode, jwtVerify } from "@utils/jwtController";
 import { roomHelper } from "@roomHelper";
 import HttpStatusCode from "@utils/httpStatus";
 import { checkLogin } from "@utils/_";
+import { tokenVerify } from "@middleware/token";
 
 const dbclient = new PrismaClient();
 
@@ -297,5 +298,46 @@ router.post("/token/logout", async (req, res) => {
   return Responser(res, 200, "Refresh token removed.");
 });
 // !SECTION
+
+/**
+ * _POST api/auth/reset-password
+ * Reset password
+ * @body string {password, newPassword}
+ */
+router.post("/reset-password", tokenVerify, async (req, res) => {
+  const oldPassword = req.body.password;
+  const newPasswrod = req.body.newPassword;
+  // Check is old password match
+  const user = await dbclient.user.findFirst({
+    where: {
+      profile: {
+        id: req.profile.id,
+      },
+    },
+  });
+
+  if (!user) {
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User not existed");
+  }
+  const isMatch = await bcrypt.compare(oldPassword, user.password);
+  if (!isMatch) {
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Password is not correct");
+  }
+  // Hash new password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(newPasswrod, salt);
+
+  // Update password
+  await dbclient.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  return Responser(res, HttpStatusCode.OK, "Password updated");
+});
 
 export { router as authRouter };
