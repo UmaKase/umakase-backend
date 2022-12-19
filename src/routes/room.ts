@@ -13,7 +13,9 @@ import HttpStatusCode from "@utils/httpStatus";
  */
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ["query", "info"],
+});
 const log = new Log();
 
 /**
@@ -43,7 +45,11 @@ router.get("/", tokenVerify, async (req, res) => {
   });
 
   if (!userProfile) {
-    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Authorization Error | User Id Problem");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "Authorization Error | User Id Problem"
+    );
   }
 
   return Responser(res, HttpStatusCode.OK, "Found room", {
@@ -93,21 +99,24 @@ router.post("/new", tokenVerify, async (req, res) => {
 
   const creator:
     | (Profile & {
-      createdRoom: Room[];
-    })
+        createdRoom: Room[];
+      })
     | null = await prisma.profile.findFirst({
-      where: { id: req.profile.id },
-      include: {
-        createdRoom: true,
-      },
-    });
-
+    where: { id: req.profile.id },
+    include: {
+      createdRoom: true,
+    },
+  });
 
   if (!creator) {
-    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User Not Found! or Authentication error");
+    return Responser(
+      res,
+      HttpStatusCode.UNAUTHORIZED,
+      "User Not Found! or Authentication error"
+    );
   }
 
-  roomieNames.push(creator.username)
+  roomieNames.push(creator.username);
 
   if (creator.createdRoom.length > 2) {
     // TODO Check if User is Premium user?
@@ -197,8 +206,72 @@ router.put("/update/:roomId", tokenVerify, async (req, res) => {
     return Responser(res, HttpStatusCode.OK, "Room updated");
   } catch (error) {
     log.error(error);
-    return Responser(res, HttpStatusCode.BAD_REQUEST, "Room not found or already deleted");
+    return Responser(
+      res,
+      HttpStatusCode.BAD_REQUEST,
+      "Room not found or already deleted"
+    );
   }
+});
+
+/**
+ * _POST Add food to room
+ * @Body string[] foodIds
+ * @Body string roomId
+ */
+router.post("/add-food", tokenVerify, async (req, res) => {
+  const foodIds: string[] = req.body.foodIds || [];
+
+  // Validate user
+  const profile = await prisma.profile.findFirst({
+    where: { id: req.profile.id },
+    include: {
+      createdRoom: {
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+  });
+  if (!profile) {
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Unauthorized or profile invalid");
+  }
+
+  if (profile.createdRoom.length <= 0) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Can't find any room");
+  }
+
+  // Validate food
+  const foods = await prisma.food.findMany({
+    where: {
+      id: {
+        in: foodIds,
+      },
+    },
+  });
+  if (foods.length <= 0) {
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Can't find any food");
+  }
+
+  // Add food to room
+  const addedFoods = await prisma.room.update({
+    where: {
+      id: profile.createdRoom[0].id,
+    },
+    data: {
+      foods: {
+        createMany: {
+          data: foodIds.map((id) => ({
+            foodId: id,
+          })),
+          skipDuplicates: true,
+        },
+      },
+    },
+  });
+
+  return Responser(res, HttpStatusCode.OK, "Added foods to room", { addedFoods });
 });
 
 /**
@@ -239,7 +312,12 @@ router.post("/event", tokenVerify, async (req, res) => {
       }
       [result, error, data] = await roomHelper.addRoomMember(roomId, newRoomies);
 
-      return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
+      return Responser(
+        res,
+        result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST,
+        error,
+        data
+      );
     case "remove-member":
       const removeRoomies = req.body.removeRoomies;
       if (!removeRoomies) {
@@ -247,8 +325,15 @@ router.post("/event", tokenVerify, async (req, res) => {
       }
       [result, error, data] = await roomHelper.removeRoomMember(roomId, removeRoomies);
 
-      return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
+      return Responser(
+        res,
+        result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST,
+        error,
+        data
+      );
     case "update-food":
+      // User add food to room
+
       break;
 
     default:
@@ -256,8 +341,16 @@ router.post("/event", tokenVerify, async (req, res) => {
       return Responser(res, HttpStatusCode.BAD_REQUEST, "No Event or Invalid Room Event");
   }
 
-  log.error(`\n\tRoom Event: ${event} | Payload: ${JSON.stringify(req.body)}`, `Error: ${error}`, data);
-  return Responser(res, HttpStatusCode.BAD_REQUEST, "Input not enough, please report to admin");
+  log.error(
+    `\n\tRoom Event: ${event} | Payload: ${JSON.stringify(req.body)}`,
+    `Error: ${error}`,
+    data
+  );
+  return Responser(
+    res,
+    HttpStatusCode.BAD_REQUEST,
+    "Input not enough, please report to admin"
+  );
 });
 
 export { router as roomRouter };

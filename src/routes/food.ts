@@ -273,7 +273,7 @@ router.get("/random/:roomId", tokenVerify, async (req, res) => {
 });
 
 /**
- * Toggle is Favorite food
+ * _POST Toggle isFavoriteFood
  * @param string foodId
  */
 router.post("/favorite", tokenVerify, async (req, res) => {
