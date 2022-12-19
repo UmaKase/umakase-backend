@@ -21,6 +21,3 @@ storage/logs/*
 # test
 test
 testing
-
-# debug
-launch.json
