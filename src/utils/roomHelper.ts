@@ -9,7 +9,7 @@ import { Log } from "@utils/Log";
 import { RoomEvent } from "types/types";
 
 type ProfileWithCreatedRoomAndFoodOnRoom = Profile & {
-  createdRoom: (Room & {
+  createdRooms: (Room & {
     foods: (FoodsOnRooms & {
       food: Food;
     })[];
@@ -80,7 +80,7 @@ const getUserProfiles = async (username: string[]) => {
         },
       },
       include: {
-        createdRoom: {
+        createdRooms: {
           take: 1,
           orderBy: {
             createdAt: "asc",
@@ -112,7 +112,7 @@ const mergeFoodByRoommateIds = (
 ): string[] => {
   const innerJoinFoodIds: string[] = [];
   let foodOnAllRoom: string[] = roomies.flatMap((roomate) =>
-    roomate.createdRoom[0].foods.map((f) => f.food.id)
+    roomate.createdRooms[0].foods.map((f) => f.food.id)
   );
   // Count times of 1 food inside the whole array.
   let index = 0;
