@@ -22,14 +22,14 @@ model User {
 
 // MODEL Profile
 model Profile {
-  id          String            @id @default(uuid())
-  username    String            @unique
-  firstname   String?
-  lastname    String?
-  user        User              @relation(fields: [userId], references: [id])
-  userId      String            @unique
-  room        ProfilesOnRooms[]
-  createdRoom Room[]
+  id           String            @id @default(uuid())
+  username     String            @unique
+  firstname    String?
+  lastname     String?
+  user         User              @relation(fields: [userId], references: [id])
+  userId       String            @unique
+  rooms        ProfilesOnRooms[]
+  createdRooms Room[]
 }
 
 // !SECTION

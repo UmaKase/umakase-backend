@@ -24,7 +24,7 @@ router.get("/default", tokenVerify, async (req, res) => {
 
   type ProfileWithCreatedRoom =
     | (Profile & {
-        createdRoom: {
+        createdRooms: {
           foods: {
             food: Food & {
               tags: {
@@ -42,7 +42,7 @@ router.get("/default", tokenVerify, async (req, res) => {
       id: profileId,
     },
     include: {
-      createdRoom: {
+      createdRooms: {
         take: 1,
         orderBy: {
           createdAt: "asc",
@@ -71,11 +71,11 @@ router.get("/default", tokenVerify, async (req, res) => {
     return Responser(res, HttpStatusCode.BAD_REQUEST, "Cannot find user");
   }
 
-  const tags = profile.createdRoom[0].foods.map((food) => {
+  const tags = profile.createdRooms[0].foods.map((food) => {
     return food.food.tags.map((tag) => tag.tag.name);
   });
 
-  if (profile.createdRoom.length === 0) {
+  if (profile.createdRooms.length === 0) {
     return Responser(
       res,
       HttpStatusCode.BAD_REQUEST,
@@ -84,7 +84,7 @@ router.get("/default", tokenVerify, async (req, res) => {
   }
 
   return Responser(res, HttpStatusCode.OK, "Success. Food returns in response", {
-    foods: profile.createdRoom[0].foods,
+    foods: profile.createdRooms[0].foods,
     tags: [...new Set(tags.flatMap((tagName) => tagName))],
   });
 });
@@ -283,7 +283,7 @@ router.post("/favorite", tokenVerify, async (req, res) => {
       id: req.profile.id,
     },
     include: {
-      room: {
+      rooms: {
         select: {
           room: {
             include: { foods: true },
@@ -304,7 +304,7 @@ router.post("/favorite", tokenVerify, async (req, res) => {
     );
   }
 
-  if (profile.room.length <= 0) {
+  if (profile.rooms.length <= 0) {
     return Responser(
       res,
       HttpStatusCode.BAD_REQUEST,
@@ -312,7 +312,7 @@ router.post("/favorite", tokenVerify, async (req, res) => {
     );
   }
   // Check if the food is in room
-  const foodInRoom = profile.room[0].room.foods.find(
+  const foodInRoom = profile.rooms[0].room.foods.find(
     (food) => food.foodId === req.body.foodId
   );
   if (!foodInRoom) {

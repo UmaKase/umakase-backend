@@ -27,7 +27,7 @@ router.get("/", tokenVerify, async (req, res) => {
       id: req.profile.id,
     },
     include: {
-      room: {
+      rooms: {
         select: {
           room: {
             select: {
@@ -53,7 +53,7 @@ router.get("/", tokenVerify, async (req, res) => {
   }
 
   return Responser(res, HttpStatusCode.OK, "Found room", {
-    rooms: userProfile.room,
+    rooms: userProfile.rooms,
   });
 });
 
@@ -66,8 +66,10 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
     },
     include: {
       foods: {
-        include: {
+        select: {
           food: true,
+          foodId: false,
+          roomId: false,
         },
       },
       user: {
@@ -99,12 +101,12 @@ router.post("/new", tokenVerify, async (req, res) => {
 
   const creator:
     | (Profile & {
-        createdRoom: Room[];
+        createdRooms: Room[];
       })
     | null = await prisma.profile.findFirst({
     where: { id: req.profile.id },
     include: {
-      createdRoom: true,
+      createdRooms: true,
     },
   });
 
@@ -118,7 +120,7 @@ router.post("/new", tokenVerify, async (req, res) => {
 
   roomieNames.push(creator.username);
 
-  if (creator.createdRoom.length > 2) {
+  if (creator.createdRooms.length > 2) {
     // TODO Check if User is Premium user?
     // -------------------
     // Normal user can only able to create two room
@@ -226,10 +228,28 @@ router.post("/add-food", tokenVerify, async (req, res) => {
   const profile = await prisma.profile.findFirst({
     where: { id: req.profile.id },
     include: {
-      createdRoom: {
+      createdRooms: {
         take: 1,
         orderBy: {
           createdAt: "asc",
+        },
+      },
+      rooms: {
+        where: {
+          room: {
+            name: {
+              not: "__default",
+            },
+          },
+        },
+        select: {
+          roomId: false,
+          profileId: false,
+          room: {
+            include: {
+              user: true,
+            },
+          },
         },
       },
     },
@@ -238,7 +258,7 @@ router.post("/add-food", tokenVerify, async (req, res) => {
     return Responser(res, HttpStatusCode.UNAUTHORIZED, "Unauthorized or profile invalid");
   }
 
-  if (profile.createdRoom.length <= 0) {
+  if (profile.createdRooms.length <= 0) {
     return Responser(res, HttpStatusCode.BAD_REQUEST, "Can't find any room");
   }
 
@@ -257,7 +277,7 @@ router.post("/add-food", tokenVerify, async (req, res) => {
   // Add food to room
   const addedFoods = await prisma.room.update({
     where: {
-      id: profile.createdRoom[0].id,
+      id: profile.createdRooms[0].id,
     },
     data: {
       foods: {
@@ -270,6 +290,17 @@ router.post("/add-food", tokenVerify, async (req, res) => {
       },
     },
   });
+
+  // Trigger other room to update their food
+  try {
+    await Promise.all(
+      profile.rooms.map(async (room) => {
+        roomHelper.triggerUpdateRoomFood(room.room);
+      })
+    );
+  } catch (error) {
+    log.error(error.message);
+  }
 
   return Responser(res, HttpStatusCode.OK, "Added foods to room", { addedFoods });
 });
