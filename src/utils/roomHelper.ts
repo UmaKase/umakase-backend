@@ -4,7 +4,14 @@
  *****************************************************||
  */
 
-import { Food, FoodsOnRooms, PrismaClient, Profile, Room } from "@prisma/client";
+import {
+  Food,
+  FoodsOnRooms,
+  PrismaClient,
+  Profile,
+  ProfilesOnRooms,
+  Room,
+} from "@prisma/client";
 import { Log } from "@utils/Log";
 import { RoomEvent } from "types/types";
 
@@ -75,9 +82,16 @@ const getUserProfiles = async (username: string[]) => {
   try {
     profiles = await prisma.profile.findMany({
       where: {
-        username: {
-          in: username,
-        },
+        OR: [
+          {
+            username: {
+              in: username,
+            },
+          },
+          {
+            id: { in: username },
+          },
+        ],
       },
       include: {
         createdRooms: {
@@ -231,19 +245,42 @@ const removeRoomMember = async (
 ): Promise<[boolean, string, any?]> => {
   return [true, ""];
 };
-const updateRommFood = async () => {};
 
 function isRoomEvent(event: string): event is RoomEvent {
   const roomEvents = ["add-member", "remove-member", "update-food"];
   return roomEvents.includes(event);
 }
 
+const triggerUpdateRoomFood = async (room: Room & { user: ProfilesOnRooms[] }) => {
+  const profileIds = room.user.map((user) => user.profileId);
+  console.log({
+    profileIds,
+  });
+  const roomies = await getUserProfiles(profileIds);
+  const foods = mergeFoodByRoommateIds(roomies);
+
+  // delete all current food on room
+  await prisma.foodsOnRooms.deleteMany({
+    where: {
+      roomId: room.id,
+    },
+  });
+
+  // re-create food on room
+  await prisma.foodsOnRooms.createMany({
+    data: foods.map((id) => ({
+      foodId: id,
+      roomId: room.id,
+    })),
+  });
+};
+
 export const roomHelper = {
   getUserProfiles,
   mergeFoodByRoommateIds,
   addRoomMember,
   removeRoomMember,
-  updateRommFood,
+  triggerUpdateRoomFood,
   isRoomEvent,
   createDefaultRoom,
 };

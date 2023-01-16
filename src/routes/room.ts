@@ -66,8 +66,10 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
     },
     include: {
       foods: {
-        include: {
+        select: {
           food: true,
+          foodId: false,
+          roomId: false,
         },
       },
       user: {
@@ -237,13 +239,19 @@ router.post("/add-food", tokenVerify, async (req, res) => {
           room: {
             name: {
               not: "__default",
-            }
-          }
+            },
+          },
         },
-        include: {
-          room: true
-        }
-      }
+        select: {
+          roomId: false,
+          profileId: false,
+          room: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
     },
   });
   if (!profile) {
@@ -284,7 +292,15 @@ router.post("/add-food", tokenVerify, async (req, res) => {
   });
 
   // Trigger other room to update their food
-  console.log(profile.rooms)
+  try {
+    await Promise.all(
+      profile.rooms.map(async (room) => {
+        roomHelper.triggerUpdateRoomFood(room.room);
+      })
+    );
+  } catch (error) {
+    log.error(error.message);
+  }
 
   return Responser(res, HttpStatusCode.OK, "Added foods to room", { addedFoods });
 });

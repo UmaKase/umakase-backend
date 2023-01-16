@@ -46,6 +46,8 @@
     "node_modules"
   ],
   "include": [
-    "./src/**/*.ts"
+    "./src/**/*.ts",
+    // add prisma to watcher
+    "./node_modules/.prisma/client/index.d.ts"
   ],
 }
