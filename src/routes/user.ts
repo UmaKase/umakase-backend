@@ -6,6 +6,7 @@ import { Log } from "@utils/Log";
 import { body, validationResult } from "express-validator";
 import HttpStatusCode from "@utils/httpStatus";
 import { checkLogin } from "@utils/_";
+import { roomHelper } from "@roomHelper";
 
 /*
  ************************************
@@ -15,6 +16,7 @@ import { checkLogin } from "@utils/_";
 
 const prisma = new PrismaClient();
 const router = express.Router();
+const logger = new Log();
 
 /**
  * _GET Get User Profile
@@ -174,6 +176,9 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     where: {
       id: req.profile.id,
     },
+    include: {
+      rooms: true,
+    },
   });
   if (!toMergeUser) {
     return Responser(
@@ -191,8 +196,8 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     return Responser(res, httpCode, messageOrError);
   }
 
-  // get tmp user's room and foods
-  const tmpUserRoom = await prisma.room.findFirst({
+  // get tmp user's created room and foods
+  const tmpUserDefaultRoom = await prisma.room.findFirst({
     where: {
       creator: {
         id: tmpUser.profile!.id,
@@ -204,7 +209,7 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     },
   });
 
-  if (!tmpUserRoom) {
+  if (!tmpUserDefaultRoom) {
     return Responser(
       res,
       HttpStatusCode.BAD_REQUEST,
@@ -212,19 +217,65 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     );
   }
   try {
-    await prisma.room.update({
+    // SECTION Merging
+    // get tmp user's foods
+    const tmpUserFoods = await prisma.foodsOnRooms.findMany({
       where: {
-        id: tmpUserRoom.id,
+        roomId: tmpUserDefaultRoom.id,
       },
-      data: {
-        creator: {
-          update: toMergeUser,
+    });
+
+    // Copy tmp user's foods to new user
+    await prisma.foodsOnRooms.createMany({
+      data: tmpUserFoods.map((food) => ({
+        foodId: food.foodId,
+        roomId: toMergeUser.rooms[0].roomId,
+      })),
+      skipDuplicates: true,
+    });
+
+    // get merged user's foods
+    const mergedUser = await prisma.profile.findFirst({
+      where: {
+        id: toMergeUser.id,
+      },
+      include: {
+        rooms: true,
+      },
+    });
+
+    // get tmp user's joined rooms
+    const tmpUserRoom = await prisma.room.findMany({
+      where: {
+        NOT: {
+          name: "__default",
         },
       },
     });
 
-    return Responser(res, HttpStatusCode.OK, "User Merged");
+    // remove tmp user's from those rooms
+    const deleteRequest = tmpUserRoom.map((room) => {
+      return roomHelper.removeRoomMember(room.id, [tmpUser.profile!.id]);
+    });
+
+    try {
+      await Promise.all(deleteRequest);
+    } catch (error) {
+      // FIXME Rollback
+      logger.error(error);
+      return Responser(
+        res,
+        HttpStatusCode.BAD_GATEWAY,
+        "Unexpected Error. Plese report error to developer. Error Code: E001"
+      );
+    }
+
+    return Responser(res, HttpStatusCode.OK, "User Merged", {
+      mergedUser,
+    });
   } catch (error) {
+    logger.error(error);
+    console.log(error);
     // TODO: Fix Error Code
     return Responser(
       res,

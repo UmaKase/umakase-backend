@@ -237,11 +237,11 @@ const addRoomMember = async (
 
   return [true, "", updated];
 };
+
+// ANCHOR Remove Room Member
 const removeRoomMember = async (
-  _: string,
-  // roomId: string,
-  __: string[]
-  // removeRoomies: string[]
+  _roomId: string,
+  _removeRoomies: string[]
 ): Promise<[boolean, string, any?]> => {
   return [true, ""];
 };

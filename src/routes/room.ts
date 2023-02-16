@@ -91,7 +91,8 @@ router.get("/info/:id", tokenVerify, async (req, res) => {
  * _POST Create A Room
  * @body string    name
  * @body string[]  roomies - username[],
- * @body string[]  foodIds.
+ * @body boolean   isDefaultRoom - default is false
+ * @body string[]  foodIds. if isDefaultRoom is true
  */
 router.post("/new", tokenVerify, async (req, res) => {
   const name: string = req.body.name;
