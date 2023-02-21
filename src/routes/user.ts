@@ -216,73 +216,72 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
       "Temporary user's default room not found"
     );
   }
+  // SECTION Merging
+  // get tmp user's foods
+  const tmpUserFoods = await prisma.foodsOnRooms.findMany({
+    where: {
+      roomId: tmpUserDefaultRoom.id,
+    },
+  });
+
+  // Copy tmp user's foods to new user
+  await prisma.foodsOnRooms.createMany({
+    data: tmpUserFoods.map((food) => ({
+      foodId: food.foodId,
+      roomId: toMergeUser.rooms[0].roomId,
+    })),
+    skipDuplicates: true,
+  });
+  // get merged user's foods
+  const mergedUser = await prisma.profile.findFirst({
+    where: {
+      id: toMergeUser.id,
+    },
+    include: {
+      rooms: true,
+    },
+  });
+
+  // get tmp user's joined rooms
+  const tmpUserRoom = await prisma.room.findMany({
+    where: {
+      NOT: {
+        name: "__default",
+      },
+    },
+  });
+
+  // Copy tmp user's joined rooms to new user
+  // because user's food is equal to tmp user's food
+  // there is no event need to be triggered
+  await prisma.profilesOnRooms.createMany({
+    data: tmpUserRoom.map((room) => ({
+      profileId: toMergeUser.id,
+      roomId: room.id,
+    })),
+    skipDuplicates: true,
+  });
+
+  // TODO: remove tmp user's from those rooms
+  const deleteRequest = tmpUserRoom.map((room) => {
+    return roomHelper.removeRoomMember(room.id, [tmpUser.profile!.id]);
+  });
+
   try {
-    // SECTION Merging
-    // get tmp user's foods
-    const tmpUserFoods = await prisma.foodsOnRooms.findMany({
-      where: {
-        roomId: tmpUserDefaultRoom.id,
-      },
-    });
-
-    // Copy tmp user's foods to new user
-    await prisma.foodsOnRooms.createMany({
-      data: tmpUserFoods.map((food) => ({
-        foodId: food.foodId,
-        roomId: toMergeUser.rooms[0].roomId,
-      })),
-      skipDuplicates: true,
-    });
-
-    // get merged user's foods
-    const mergedUser = await prisma.profile.findFirst({
-      where: {
-        id: toMergeUser.id,
-      },
-      include: {
-        rooms: true,
-      },
-    });
-
-    // get tmp user's joined rooms
-    const tmpUserRoom = await prisma.room.findMany({
-      where: {
-        NOT: {
-          name: "__default",
-        },
-      },
-    });
-
-    // remove tmp user's from those rooms
-    const deleteRequest = tmpUserRoom.map((room) => {
-      return roomHelper.removeRoomMember(room.id, [tmpUser.profile!.id]);
-    });
-
-    try {
-      await Promise.all(deleteRequest);
-    } catch (error) {
-      // FIXME Rollback
-      logger.error(error);
-      return Responser(
-        res,
-        HttpStatusCode.BAD_GATEWAY,
-        "Unexpected Error. Plese report error to developer. Error Code: E001"
-      );
-    }
-
-    return Responser(res, HttpStatusCode.OK, "User Merged", {
-      mergedUser,
-    });
+    await Promise.all(deleteRequest);
   } catch (error) {
+    // FIXME Rollback
     logger.error(error);
-    console.log(error);
-    // TODO: Fix Error Code
     return Responser(
       res,
       HttpStatusCode.BAD_GATEWAY,
       "Unexpected Error. Plese report error to developer. Error Code: E001"
     );
   }
+
+  return Responser(res, HttpStatusCode.OK, "User Merged", {
+    mergedUser,
+  });
 });
 
 export { router as userRouter };
