@@ -378,6 +378,7 @@ router.post("/event", tokenVerify, async (req, res) => {
     `Error: ${error}`,
     data
   );
+
   return Responser(
     res,
     HttpStatusCode.BAD_REQUEST,

@@ -6,7 +6,6 @@ import { Log } from "@utils/Log";
 import { body, validationResult } from "express-validator";
 import HttpStatusCode from "@utils/httpStatus";
 import { checkLogin } from "@utils/_";
-import { roomHelper } from "@roomHelper";
 
 /*
  ************************************
@@ -16,7 +15,6 @@ import { roomHelper } from "@roomHelper";
 
 const prisma = new PrismaClient();
 const router = express.Router();
-const logger = new Log();
 
 /**
  * _GET Get User Profile
@@ -196,16 +194,13 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     return Responser(res, httpCode, messageOrError);
   }
 
-  // get tmp user's created room and foods
+  // get tmp user's created room
   const tmpUserDefaultRoom = await prisma.room.findFirst({
     where: {
       creator: {
         id: tmpUser.profile!.id,
       },
-    },
-    orderBy: {
-      // FIXME Check again
-      createdAt: "desc",
+      name: "__default",
     },
   });
 
@@ -241,43 +236,6 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
       rooms: true,
     },
   });
-
-  // get tmp user's joined rooms
-  const tmpUserRoom = await prisma.room.findMany({
-    where: {
-      NOT: {
-        name: "__default",
-      },
-    },
-  });
-
-  // Copy tmp user's joined rooms to new user
-  // because user's food is equal to tmp user's food
-  // there is no event need to be triggered
-  await prisma.profilesOnRooms.createMany({
-    data: tmpUserRoom.map((room) => ({
-      profileId: toMergeUser.id,
-      roomId: room.id,
-    })),
-    skipDuplicates: true,
-  });
-
-  // TODO: remove tmp user's from those rooms
-  const deleteRequest = tmpUserRoom.map((room) => {
-    return roomHelper.removeRoomMember(room.id, [tmpUser.profile!.id]);
-  });
-
-  try {
-    await Promise.all(deleteRequest);
-  } catch (error) {
-    // FIXME Rollback
-    logger.error(error);
-    return Responser(
-      res,
-      HttpStatusCode.BAD_GATEWAY,
-      "Unexpected Error. Plese report error to developer. Error Code: E001"
-    );
-  }
 
   return Responser(res, HttpStatusCode.OK, "User Merged", {
     mergedUser,
