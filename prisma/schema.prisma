@@ -10,14 +10,15 @@ datasource db {
 // SECTION Users
 // MODEL User
 model User {
-  id           String   @id @default(uuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
-  email        String?  @unique
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  email        String?   @unique
   password     String
-  refreshToken String?  @db.Text
+  refreshToken String?   @db.Text
   profile      Profile?
-  tmpId        String?  @unique
+  tmpId        String?   @unique
+  mergedAt     DateTime?
 }
 
 // MODEL Profile

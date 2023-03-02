@@ -22,7 +22,21 @@ const dbclient = new PrismaClient();
 
 const router = express.Router();
 
-// SECTION Register
+/**
+ * Register a new user or create a temp user
+ * SECTION Register
+ * CASE: Register a new user
+ * @Body string email
+ * @Body string username
+ * @Body string password
+ * @Body string firstname
+ * @Body string lastname
+ * @Body string[] foodIds
+ *
+ * CASE: Create a temp user
+ * @Body string email - random email
+ * @Body boolean isTemp - true
+ */
 router.post(
   "/register",
   // Input validation

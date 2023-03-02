@@ -13,7 +13,7 @@ type UserWithProfile =
   | null;
 
 // Random integer number generator
-export const randomInt = (min: number, max: number, excludes?: number[]) => {
+const randomInt = (min: number, max: number, excludes?: number[]) => {
   if (min > max || (excludes?.length || 0) > max) {
     logger.error("Random function error: ", { min, max, excludes });
     return randomInt(min, max, []);
@@ -32,7 +32,7 @@ export const randomInt = (min: number, max: number, excludes?: number[]) => {
 /**
  * Return {times} of random number from min to max
  */
-export const randomMultiple = (min: number, max: number, times: number): number[] => {
+const randomMultiple = (min: number, max: number, times: number): number[] => {
   const result: number[] = [];
   for (let i = 0; i < times; i++) {
     result.push(randomInt(min, max));
@@ -46,7 +46,7 @@ export const randomMultiple = (min: number, max: number, times: number): number[
  * @param password
  * @returns [isValidUser, HTTPStatusCode, MessageOrError]
  */
-export const checkLogin = async (
+const checkLogin = async (
   username: string,
   password: string
 ): Promise<[UserWithProfile | undefined, HttpStatusCode, string]> => {
@@ -73,3 +73,17 @@ export const checkLogin = async (
 
   return [user, HttpStatusCode.OK, "Success"];
 };
+
+const attachGlobalFunction = () => {
+  globalThis.unwrap = async (promise) => {
+    try {
+      const result = await promise;
+      return [result, undefined];
+    } catch (error: any) {
+      logger.error(error);
+      return [undefined, error];
+    }
+  };
+};
+
+export { randomInt, randomMultiple, checkLogin, attachGlobalFunction };

@@ -174,6 +174,9 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     where: {
       id: req.profile.id,
     },
+    include: {
+      rooms: true,
+    },
   });
   if (!toMergeUser) {
     return Responser(
@@ -191,47 +194,52 @@ router.post("/tmp/merge", tokenVerify, async (req, res) => {
     return Responser(res, httpCode, messageOrError);
   }
 
-  // get tmp user's room and foods
-  const tmpUserRoom = await prisma.room.findFirst({
+  // get tmp user's created room
+  const tmpUserDefaultRoom = await prisma.room.findFirst({
     where: {
       creator: {
         id: tmpUser.profile!.id,
       },
-    },
-    orderBy: {
-      // FIXME Check again
-      createdAt: "desc",
+      name: "__default",
     },
   });
 
-  if (!tmpUserRoom) {
+  if (!tmpUserDefaultRoom) {
     return Responser(
       res,
       HttpStatusCode.BAD_REQUEST,
       "Temporary user's default room not found"
     );
   }
-  try {
-    await prisma.room.update({
-      where: {
-        id: tmpUserRoom.id,
-      },
-      data: {
-        creator: {
-          update: toMergeUser,
-        },
-      },
-    });
+  // SECTION Merging
+  // get tmp user's foods
+  const tmpUserFoods = await prisma.foodsOnRooms.findMany({
+    where: {
+      roomId: tmpUserDefaultRoom.id,
+    },
+  });
 
-    return Responser(res, HttpStatusCode.OK, "User Merged");
-  } catch (error) {
-    // TODO: Fix Error Code
-    return Responser(
-      res,
-      HttpStatusCode.BAD_GATEWAY,
-      "Unexpected Error. Plese report error to developer. Error Code: E001"
-    );
-  }
+  // Copy tmp user's foods to new user
+  await prisma.foodsOnRooms.createMany({
+    data: tmpUserFoods.map((food) => ({
+      foodId: food.foodId,
+      roomId: toMergeUser.rooms[0].roomId,
+    })),
+    skipDuplicates: true,
+  });
+  // get merged user's foods
+  const mergedUser = await prisma.profile.findFirst({
+    where: {
+      id: toMergeUser.id,
+    },
+    include: {
+      rooms: true,
+    },
+  });
+
+  return Responser(res, HttpStatusCode.OK, "User Merged", {
+    mergedUser,
+  });
 });
 
 export { router as userRouter };

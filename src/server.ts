@@ -14,6 +14,7 @@ import { tagRouter } from "./routes/tag";
 import { imagesRouter } from "./routes/images";
 import { Log } from "./utils/Log";
 import { roomRouter } from "./routes/room";
+import { attachGlobalFunction } from "@utils/_";
 
 export const logg = new Log(process.env.LOG_PATH);
 export const dbclient = new PrismaClient();
@@ -47,6 +48,8 @@ async function main() {
     console.log("running on port ", PORT);
   });
 }
+
+attachGlobalFunction();
 
 main()
   .catch((e) => {
