@@ -77,8 +77,7 @@ const checkLogin = async (
 const attachGlobalFunction = () => {
   globalThis.unwrap = async (promise) => {
     try {
-      const result = await promise;
-      return [result, undefined];
+      return [await promise, undefined];
     } catch (error: any) {
       logger.error(error);
       return [undefined, error];
