@@ -1,9 +1,8 @@
 import { PrismaClient, Profile, User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import HttpStatusCode from "@utils/httpStatus";
-import { Log } from "@utils/Log";
+import { logg } from "../server";
 
-const logger = new Log();
 const prisma = new PrismaClient();
 
 type UserWithProfile =
@@ -15,7 +14,7 @@ type UserWithProfile =
 // Random integer number generator
 const randomInt = (min: number, max: number, excludes?: number[]) => {
   if (min > max || (excludes?.length || 0) > max) {
-    logger.error("Random function error: ", { min, max, excludes });
+    logg.error("Random function error: ", { min, max, excludes });
     return randomInt(min, max, []);
   }
   const random = Math.floor(Math.random() * (max - min)) + min;
@@ -46,10 +45,7 @@ const randomMultiple = (min: number, max: number, times: number): number[] => {
  * @param password
  * @returns [isValidUser, HTTPStatusCode, MessageOrError]
  */
-const checkLogin = async (
-  username: string,
-  password: string
-): Promise<[UserWithProfile | undefined, HttpStatusCode, string]> => {
+const checkLogin = async (username: string, password: string): Promise<[UserWithProfile | undefined, HttpStatusCode, string]> => {
   //ANCHOR Check If User Existed
   // TODO user more than only username
   const user: UserWithProfile = await prisma.user.findFirst({
@@ -75,12 +71,16 @@ const checkLogin = async (
 };
 
 const attachGlobalFunction = () => {
-  globalThis.unwrap = async (promise) => {
+  globalThis.unwrap = async (promise, fallback: any = undefined) => {
     try {
-      return [await promise, undefined];
+      const result = await promise;
+      return [result, undefined];
     } catch (error: any) {
-      logger.error(error);
-      return [undefined, error];
+      logg.error(error);
+      if (typeof fallback === "function") {
+        return [fallback(), error];
+      }
+      return [fallback, error];
     }
   };
 };
