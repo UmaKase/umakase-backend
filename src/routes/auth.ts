@@ -111,7 +111,13 @@ router.post(
     const [defaultRoom, error] = await unwrap(roomHelper.createDefaultRoom(username, foodIds));
 
     if (error) {
-      // FIXME deleting user
+      await unwrap(
+        dbclient.user.delete({
+          where: {
+            email,
+          },
+        })
+      );
       return Responser(res, HttpStatusCode.INTERNAL_SERVER_ERROR, "Error creating default room. Please contact admin");
     }
 

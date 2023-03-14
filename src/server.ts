@@ -38,6 +38,8 @@ async function main() {
   app.use("/api/v1/tag", tagRouter);
   app.use("/api/v1/img", imagesRouter);
   app.use("/api/v1/room", roomRouter);
+
+  // development routes
   if (process.env.NODE_ENV !== "production") {
     app.use("/api/v1/test", testRouter);
   }
