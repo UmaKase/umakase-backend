@@ -27,7 +27,7 @@ model Profile {
   username     String            @unique
   firstname    String?
   lastname     String?
-  user         User              @relation(fields: [userId], references: [id])
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String            @unique
   rooms        ProfilesOnRooms[]
   createdRooms Room[]
@@ -62,8 +62,8 @@ model Tag {
 model TagsOnFoods {
   tagId  String
   foodId String
-  food   Food   @relation(fields: [foodId], references: [id])
-  tag    Tag    @relation(fields: [tagId], references: [id])
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   // @@index([foodId], map: "TagsOnFoods_foodId_fkey")
   @@id([tagId, foodId])
@@ -80,7 +80,8 @@ model Room {
   updatedAt DateTime          @default(now()) @updatedAt
   user      ProfilesOnRooms[]
   foods     FoodsOnRooms[]
-  creator   Profile           @relation(fields: [creatorId], references: [id])
+  //                                                                          // Room is deleted if creator is deleted
+  creator   Profile           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId String
 }
 
@@ -88,8 +89,8 @@ model Room {
 model FoodsOnRooms {
   roomId     String
   foodId     String
-  room       Room    @relation(fields: [roomId], references: [id])
-  food       Food    @relation(fields: [foodId], references: [id])
+  room       Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  food       Food    @relation(fields: [foodId], references: [id], onDelete: Cascade)
   isFavorite Boolean @default(false)
 
   @@id([roomId, foodId])
@@ -100,8 +101,8 @@ model FoodsOnRooms {
 model ProfilesOnRooms {
   roomId    String
   profileId String
-  room      Room     @relation(fields: [roomId], references: [id])
-  profile   Profile  @relation(fields: [profileId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   joinedAt  DateTime @default(now())
 
   @@id([roomId, profileId])

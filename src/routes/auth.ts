@@ -1,15 +1,9 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
-import {
-  accessTokenSecret,
-  accessToken_Exp,
-  BSalt,
-  refreshTokenSecret,
-  refreshToken_Exp,
-} from "@config/config";
+import { accessTokenSecret, accessToken_Exp, BSalt, refreshTokenSecret, refreshToken_Exp } from "@config/config";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { createTempUser } from "@utils/tmpUser";
 import { Responser } from "@utils/ResponseController";
 import { jwtDecode, jwtVerify } from "@utils/jwtController";
@@ -43,12 +37,8 @@ router.post(
   // NOTE even if creating a tmp account. YOU STILL NEED TO SEND EMAIL
   // just send random thing, server will ignore it
   body("email").isEmail().withMessage("Email is not valid"),
-  body("username")
-    .isLength({ min: 5, max: undefined })
-    .withMessage("Username must be at least 5 characters long"),
-  body("password")
-    .isLength({ min: 5 })
-    .withMessage("Password must have at least 5 characters"),
+  body("username").isLength({ min: 5, max: undefined }).withMessage("Username must be at least 5 characters long"),
+  body("password").isLength({ min: 5 }).withMessage("Password must have at least 5 characters"),
   async (req, res) => {
     const { email, username, password, firstname, lastname, isTemp, foodIds } = req.body;
 
@@ -74,27 +64,26 @@ router.post(
     }
 
     // ANCHOR Check If Email or Username Existed
-    const users = await dbclient.user.findMany({
-      where: {
-        OR: [
-          {
-            email,
-          },
-          {
-            profile: {
-              username,
+    const [users] = await unwrap(
+      dbclient.user.findMany({
+        where: {
+          OR: [
+            {
+              email,
             },
-          },
-        ],
-      },
-    });
+            {
+              profile: {
+                username,
+              },
+            },
+          ],
+        },
+      }),
+      [] as User[]
+    );
 
     if (users.length > 0) {
-      return Responser(
-        res,
-        HttpStatusCode.BAD_REQUEST,
-        "Email or Username already in use"
-      );
+      return Responser(res, HttpStatusCode.BAD_REQUEST, "Email or Username already in use");
     }
 
     // ANCHOR Start inserting data
@@ -119,7 +108,18 @@ router.post(
     //    userHelper.mergeTempUser()
     // }
 
-    const defaultRoom = await roomHelper.createDefaultRoom(username, foodIds);
+    const [defaultRoom, error] = await unwrap(roomHelper.createDefaultRoom(username, foodIds));
+
+    if (error) {
+      await unwrap(
+        dbclient.user.delete({
+          where: {
+            email,
+          },
+        })
+      );
+      return Responser(res, HttpStatusCode.INTERNAL_SERVER_ERROR, "Error creating default room. Please contact admin");
+    }
 
     return Responser(res, HttpStatusCode.OK, "success", {
       defaultRoom,
@@ -202,11 +202,7 @@ router.post("/token/access", async (req, res) => {
 router.post("/token/refresh", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Error : Missing Authorization Header provided!"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Error : Missing Authorization Header provided!");
   }
 
   const authHeader: string = req.headers["authorization"];
@@ -245,12 +241,7 @@ router.post("/token/refresh", async (req, res) => {
   const newAccessToken = jwt.sign(userInfo, accessTokenSecret!, {
     expiresIn: accessToken_Exp,
   });
-  return Responser(
-    res,
-    HttpStatusCode.OK,
-    "Refresh token valid, new access token in reps",
-    { newAccessToken }
-  );
+  return Responser(res, HttpStatusCode.OK, "Refresh token valid, new access token in reps", { newAccessToken });
 });
 // !SECTION
 
@@ -258,11 +249,7 @@ router.post("/token/refresh", async (req, res) => {
 router.post("/token/logout", async (req, res) => {
   //check if the req.headers["authorization"] exist
   if (!req.headers["authorization"]) {
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Error : Missing Authorization Header provided!"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Error : Missing Authorization Header provided!");
   }
 
   const authHeader: string = req.headers["authorization"];

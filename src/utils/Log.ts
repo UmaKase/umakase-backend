@@ -4,22 +4,18 @@ import { DEFAULT_LOG_PATH } from "../config/config";
 
 export class Log {
   private path: string;
-  private logName: string;
 
   constructor(path?: string) {
     if (path && path.length > 0) {
       const absolutePath = Path.join(__dirname, "..", "..", path);
-      if (fs.existsSync(absolutePath)) {
-        this.path = absolutePath;
-      } else {
-        // create directory
-        fs.mkdirSync(absolutePath);
-        this.path = absolutePath;
-      }
+      this.path = absolutePath;
     } else {
       this.path = Path.join(__dirname, "..", "..", DEFAULT_LOG_PATH);
     }
-    this.updateName();
+    // create directory if not exist
+    if (!fs.existsSync(this.path)) {
+      fs.mkdirSync(this.path, { recursive: true });
+    }
   }
 
   log(...things: any[]) {
@@ -28,7 +24,8 @@ export class Log {
     data = this.convertArgsToString(things);
     data += "-------------***********-------------\n";
 
-    fs.appendFileSync(`${this.path}/${this.logName}`, `${data}`);
+    let logName = this.getName();
+    fs.appendFileSync(`${this.path}/${logName}`, `${data}`);
   }
 
   error(...things: any[]) {
@@ -37,7 +34,8 @@ export class Log {
     data = this.convertArgsToString(things);
     data += "-------------***********-------------\n";
 
-    fs.appendFileSync(`${this.path}/${this.logName}`, `${data}`);
+    let logName = this.getName();
+    fs.appendFileSync(`${this.path}/${logName}`, `${data}`);
   }
 
   /**
@@ -68,8 +66,7 @@ export class Log {
     return data;
   }
 
-  private updateName() {
-    // FIXME: Use cron to update name at 00:00 everyday
-    this.logName = `${new Date().toDateString()}.log`;
+  private getName() {
+    return `${new Date().toDateString()}.log`;
   }
 }

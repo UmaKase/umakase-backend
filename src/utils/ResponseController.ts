@@ -8,12 +8,7 @@ import { Response } from "express";
  * @param messageOrError - Message or error
  * @param data - any date
  */
-export const Responser = (
-  res: Response,
-  HTTPStatus: HttpStatusCode = 200,
-  messageOrError: string = "Success",
-  data?: any
-) => {
+export const Responser = (res: Response, HTTPStatus: HttpStatusCode = 200, messageOrError: string = "Success", data?: any) => {
   const isOk = [100, 200].includes(HTTPStatus);
   res.status(HTTPStatus).json({
     ok: isOk ? true : false,
