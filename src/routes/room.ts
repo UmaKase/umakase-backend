@@ -33,6 +33,11 @@ router.get("/", tokenVerify, async (req, res) => {
             select: {
               name: true,
               id: true,
+              user: {
+                select: {
+                  profile: true,
+                },
+              },
             },
           },
         },
@@ -45,11 +50,7 @@ router.get("/", tokenVerify, async (req, res) => {
   });
 
   if (!userProfile) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "Authorization Error | User Id Problem"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "Authorization Error | User Id Problem");
   }
 
   return Responser(res, HttpStatusCode.OK, "Found room", {
@@ -112,11 +113,7 @@ router.post("/new", tokenVerify, async (req, res) => {
   });
 
   if (!creator) {
-    return Responser(
-      res,
-      HttpStatusCode.UNAUTHORIZED,
-      "User Not Found! or Authentication error"
-    );
+    return Responser(res, HttpStatusCode.UNAUTHORIZED, "User Not Found! or Authentication error");
   }
 
   roomieNames.push(creator.username);
@@ -209,11 +206,7 @@ router.put("/update/:roomId", tokenVerify, async (req, res) => {
     return Responser(res, HttpStatusCode.OK, "Room updated");
   } catch (error) {
     log.error(error);
-    return Responser(
-      res,
-      HttpStatusCode.BAD_REQUEST,
-      "Room not found or already deleted"
-    );
+    return Responser(res, HttpStatusCode.BAD_REQUEST, "Room not found or already deleted");
   }
 });
 
@@ -344,12 +337,7 @@ router.post("/event", tokenVerify, async (req, res) => {
       }
       [result, error, data] = await roomHelper.addRoomMember(roomId, newRoomies);
 
-      return Responser(
-        res,
-        result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST,
-        error,
-        data
-      );
+      return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
     case "remove-member":
       const removeRoomies = req.body.removeRoomies;
       if (!removeRoomies) {
@@ -357,12 +345,7 @@ router.post("/event", tokenVerify, async (req, res) => {
       }
       [result, error, data] = await roomHelper.removeRoomMember(roomId, removeRoomies);
 
-      return Responser(
-        res,
-        result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST,
-        error,
-        data
-      );
+      return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
     case "update-food":
       // User add food to room
 
@@ -373,17 +356,9 @@ router.post("/event", tokenVerify, async (req, res) => {
       return Responser(res, HttpStatusCode.BAD_REQUEST, "No Event or Invalid Room Event");
   }
 
-  log.error(
-    `\n\tRoom Event: ${event} | Payload: ${JSON.stringify(req.body)}`,
-    `Error: ${error}`,
-    data
-  );
+  log.error(`\n\tRoom Event: ${event} | Payload: ${JSON.stringify(req.body)}`, `Error: ${error}`, data);
 
-  return Responser(
-    res,
-    HttpStatusCode.BAD_REQUEST,
-    "Input not enough, please report to admin"
-  );
+  return Responser(res, HttpStatusCode.BAD_REQUEST, "Input not enough, please report to admin");
 });
 
 export { router as roomRouter };
