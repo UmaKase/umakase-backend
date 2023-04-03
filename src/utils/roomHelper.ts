@@ -102,7 +102,8 @@ const getUserProfiles = async (username: string[]) => {
         },
       },
     });
-  } catch (_) {
+  } catch (exception) {
+    console.log(exception);
     logger.error("Fetch Profile Error in function getUserProfles");
     return [];
   }
