@@ -300,7 +300,7 @@ router.post("/add-food", tokenVerify, async (req, res) => {
 });
 
 /**
- * @Body Event event
+ * @Body Event event - add-member | remove-member | update-food
  * @Body string roomId
  * @Body string[] newRoomies - new roommate usernames if it is add-member event
  * @Body string[] removeRoomies - remove roommate usernames if it is remove-member event
