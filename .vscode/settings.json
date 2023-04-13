@@ -106,5 +106,5 @@
 		"editor.insertSpaces": true,
 		"editor.detectIndentation": false
 	},
-	"prettier.tabWidth": 2
+	"editor.tabSize": 4
 }

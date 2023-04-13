@@ -19,48 +19,48 @@ import { testRouter } from "./routes/test";
 
 export const logg = new Log(process.env.LOG_PATH);
 export const dbclient = new PrismaClient();
+attachGlobalFunction();
 
 const PORT = process.env.PORT || 5000;
 
 async function main() {
-  const app = express();
-  app.use(express.json());
-  app.use(
-    cors({
-      origin: ["https://hoppscotch.io"],
-    })
-  );
-  app.use(routeLogger);
+    const app = express();
+    app.use(express.json());
+    app.use(
+        cors({
+            origin: ["https://hoppscotch.io"],
+        })
+    );
+    app.use(routeLogger);
 
-  app.use("/api/v1/auth", authRouter);
-  app.use("/api/v1/user", userRouter);
-  app.use("/api/v1/food", foodRouter);
-  app.use("/api/v1/tag", tagRouter);
-  app.use("/api/v1/img", imagesRouter);
-  app.use("/api/v1/room", roomRouter);
+    app.use("/api/v1/auth", authRouter);
+    app.use("/api/v1/user", userRouter);
+    app.use("/api/v1/food", foodRouter);
+    app.use("/api/v1/tag", tagRouter);
+    app.use("/api/v1/img", imagesRouter);
+    app.use("/api/v1/room", roomRouter);
 
-  // development routes
-  if (process.env.NODE_ENV !== "production") {
-    app.use("/api/v1/test", testRouter);
-  }
+    // development routes
+    if (process.env.NODE_ENV !== "production") {
+        app.use("/api/v1/test", testRouter);
+    }
 
-  app.get("/", (__, rs) => {
-    rs.json({
-      ok: "kkkk",
+    app.get("/", (__, rs) => {
+        rs.json({
+            ok: "kkkk",
+        });
     });
-  });
 
-  app.listen(PORT, () => {
-    console.log("running on port ", PORT);
-  });
+    app.listen(PORT, () => {
+        console.log("running on port ", PORT);
+    });
 }
 
-attachGlobalFunction();
-
 main()
-  .catch((e) => {
-    console.log(e);
-  })
-  .finally(async () => {
-    await dbclient.$disconnect();
-  });
+    .catch((e) => {
+        logg.error(e);
+        console.log(e);
+    })
+    .finally(async () => {
+        await dbclient.$disconnect();
+    });
