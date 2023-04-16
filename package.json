@@ -4,7 +4,7 @@
     "main": "dist/server.js",
     "scripts": {
         "watch": "tsc --watch",
-        "dev": "NODE_ENV=development nodemon ./dist/server.js",
+        "dev": "nodemon ./dist/server.js",
         "build": "tsc",
         "start": "NODE_ENV=production node ./dist/server.js",
         "seed": "node ./dist/database/seed.js"

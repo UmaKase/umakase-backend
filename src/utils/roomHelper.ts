@@ -343,6 +343,60 @@ const triggerUpdateRoomFood = async (room: Room & { user: ProfilesOnRooms[] }) =
     });
 };
 
+const removeRoomFood = async (roomId: string, removeFood: string[]): Promise<[boolean, string, any?]> => {
+    // validate room
+    const [room, error] = await unwrap(
+        prisma.room.findFirst({
+            where: {
+                id: roomId,
+            },
+            include: {
+                foods: {
+                    select: {
+                        food: {
+                            select: {
+                                id: true,
+                            },
+                        },
+                    },
+                },
+            },
+        })
+    );
+
+    if (error || !room) {
+        logger.error("error while removing food from room", error);
+        return [false, "Can't find room"];
+    }
+
+    // remove food from room
+    const roomFoods = room.foods.filter((food) => !removeFood.includes(food.food.id));
+
+    // remove old food from room
+    const [_, deleteFoodError] = await unwrap(
+        prisma.foodsOnRooms.deleteMany({
+            where: {
+                roomId,
+            },
+        })
+    );
+
+    if (deleteFoodError) {
+        logger.error("error while removing food from room", deleteFoodError);
+        return [false, "Can't remove food from room"];
+    }
+
+    // add new food to room
+    const [__, updateFoodError] = await unwrap(
+        prisma.foodsOnRooms.createMany({
+            data: roomFoods.map((food) => ({
+                foodId: food.food.id,
+                roomId,
+            })),
+        })
+    );
+};
+
 export const roomHelper = {
     getUserProfiles,
     mergeFoodByRoommateIds,
@@ -351,4 +405,5 @@ export const roomHelper = {
     triggerUpdateRoomFood,
     isRoomEvent,
     createDefaultRoom,
+    removeRoomFood,
 };
