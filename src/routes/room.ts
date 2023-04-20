@@ -211,9 +211,8 @@ router.put("/update/:roomId", tokenVerify, async (req, res) => {
 });
 
 /**
- * _POST Add food to room
+ * _POST Add Default food to room
  * @Body string[] foodIds
- * @Body string roomId
  */
 router.post("/add-food", tokenVerify, async (req, res) => {
     const foodIds: string[] = req.body.foodIds || [];
@@ -348,7 +347,7 @@ router.post("/event", tokenVerify, async (req, res) => {
             return Responser(res, result ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST, error, data);
         case "update-food":
             // remove foods from room
-            const removeFood = req.body.removeRoomies;
+            const removeFood = req.body.removeFoods as string[];
             if (!removeFood) {
                 break;
             }

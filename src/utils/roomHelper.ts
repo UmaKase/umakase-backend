@@ -360,6 +360,7 @@ const removeRoomFood = async (roomId: string, removeFood: string[]): Promise<[bo
                         },
                     },
                 },
+                user: true,
             },
         })
     );
@@ -369,7 +370,7 @@ const removeRoomFood = async (roomId: string, removeFood: string[]): Promise<[bo
         return [false, "Can't find room"];
     }
 
-    // remove food from room
+    // Room's food after remove
     const roomFoods = room.foods.filter((food) => !removeFood.includes(food.food.id));
 
     // remove old food from room
@@ -386,7 +387,7 @@ const removeRoomFood = async (roomId: string, removeFood: string[]): Promise<[bo
         return [false, "Can't remove food from room"];
     }
 
-    // add new food to room
+    // Re-adding updated food to room
     const [__, updateFoodError] = await unwrap(
         prisma.foodsOnRooms.createMany({
             data: roomFoods.map((food) => ({
@@ -395,6 +396,15 @@ const removeRoomFood = async (roomId: string, removeFood: string[]): Promise<[bo
             })),
         })
     );
+
+    if (updateFoodError) {
+        logger.error("error while updating food on room", updateFoodError);
+        return [false, "Can't update food on room"];
+    }
+
+    await unwrap(triggerUpdateRoomFood(room));
+
+    return [true, "room updated"];
 };
 
 export const roomHelper = {
