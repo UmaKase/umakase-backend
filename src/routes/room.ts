@@ -117,6 +117,8 @@ router.post("/new", tokenVerify, async (req, res) => {
     }
 
     roomieNames.push(creator.username);
+    // clear duplicate
+    roomieNames = [...new Set(roomieNames)];
 
     if (creator.createdRooms.length > 2) {
         // TODO Check if User is Premium user?
@@ -132,48 +134,50 @@ router.post("/new", tokenVerify, async (req, res) => {
         foodToAdd = roomHelper.mergeFoodByRoommateIds(roomies);
     }
 
-    const newRoom = await prisma.room.create({
-        data: {
-            name,
-            creator: {
-                connect: {
-                    id: creator.id,
+    const [newRoom] = await unwrap(
+        prisma.room.create({
+            data: {
+                name,
+                creator: {
+                    connect: {
+                        id: creator.id,
+                    },
                 },
-            },
-            foods: {
-                create: foodToAdd.map((id) => ({
-                    food: {
-                        connect: {
-                            id,
+                foods: {
+                    create: foodToAdd.map((id) => ({
+                        food: {
+                            connect: {
+                                id,
+                            },
                         },
-                    },
-                })),
-            },
-            user: {
-                create: roomieNames.map((username) => ({
-                    profile: {
-                        connect: { username },
-                    },
-                })),
-            },
-        },
-        include: {
-            foods: {
-                select: {
-                    foodId: false,
-                    roomId: false,
-                    food: true,
+                    })),
+                },
+                user: {
+                    create: roomieNames.map((username) => ({
+                        profile: {
+                            connect: { username },
+                        },
+                    })),
                 },
             },
-            user: {
-                select: {
-                    profileId: false,
-                    roomId: false,
-                    profile: true,
+            include: {
+                foods: {
+                    select: {
+                        foodId: false,
+                        roomId: false,
+                        food: true,
+                    },
+                },
+                user: {
+                    select: {
+                        profileId: false,
+                        roomId: false,
+                        profile: true,
+                    },
                 },
             },
-        },
-    });
+        })
+    );
 
     return Responser(res, HttpStatusCode.OK, "created successfully", {
         newRoom,

@@ -247,7 +247,7 @@ const removeRoomMember = async (roomId: string, removeRoomies: string[]): Promis
         return [false, "Can't find room"];
     }
 
-    // roomies in room that not gonna be removed
+    // roomies that will remain in room after removing
     const roomiesInRoom = room.user.filter((roomie) => !removeRoomies.includes(roomie.profile.username));
 
     // remove roomies from room
