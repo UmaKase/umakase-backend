@@ -2,9 +2,9 @@ require("dotenv").config();
 export const DEFAULT_LOG_PATH = "/storage/logs";
 export const accessToken_Exp = "1d";
 export const refreshToken_Exp = "30d";
-export const accessTokenSecret =
-  process.env.ACCESS_TOKEN_SECRET || "some super secret";
-export const refreshTokenSecret =
-  process.env.REFRESH_TOKEN_SECRET || "some other super secret";
+export const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "some super secret";
+export const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "some other super secret";
 export const BSalt = 10;
 export const DEFAULT_RANDOM_COUNT = 3;
+export const GitHubIssuePath = process.env.GITHUB_ISSUE_PATH || "https://api.github.com/repos/chiu-kh0607/ExpoUserCards/issues";
+export const GitHubIssueAuthorization = process.env.GITHUB_ISSUE_AUTORIZATION || "Bearer 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";

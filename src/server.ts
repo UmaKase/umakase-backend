@@ -16,6 +16,7 @@ import { Log } from "./utils/Log";
 import { roomRouter } from "./routes/room";
 import { attachGlobalFunction } from "@utils/_";
 import { testRouter } from "./routes/test";
+import { feedbackRouter } from "./routes/feedback";
 
 export const logg = new Log(process.env.LOG_PATH);
 export const dbclient = new PrismaClient();
@@ -39,6 +40,7 @@ async function main() {
     app.use("/api/v1/tag", tagRouter);
     app.use("/api/v1/img", imagesRouter);
     app.use("/api/v1/room", roomRouter);
+    app.use("/api/v1/feedback", feedbackRouter);
 
     // development routes
     if (process.env.NODE_ENV !== "production") {
