@@ -1,9 +1,11 @@
 # Umakase application's back-end server
 - This repo is Umakase-application back-end. Umakase application is not yet released.
 ## Tech Stack
-- ExpressJS
-- Prisma
-
+- Back-end:
+  - ExpressJS.
+  - Prisma.
+- Front-end:
+  - React-native.
 ##  Set up server
 - Clone Repo
 - `cd` into repo folder.
