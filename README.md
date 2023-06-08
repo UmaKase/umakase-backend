@@ -1,4 +1,8 @@
-
+# Umakase application's back-end server
+- This repo is Umakase-application back-end. Umakase application is not yet released.
+## Tech Stack
+- ExpressJS
+- Prisma
 
 ##  Set up server
 - Clone Repo
